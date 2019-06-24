@@ -480,9 +480,9 @@ void loop()
  //****************************************************************
  // for now hardcode the opMode
 
- //opMode = TELEOP;
+ opMode = TELEOP;
  //opMode = MEASURE_AND_CALIBRATE_MOTORS;
- opMode = JUST_RUN;
+ //opMode = JUST_RUN;
 
   switch (opMode) {
     case JUST_RUN:
