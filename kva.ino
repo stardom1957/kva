@@ -1,11 +1,52 @@
 /*
- * Measuring the speed and direction of two motors DC using an L298N motor bridge.
+ * 
+ * KVA V1: first integration of Ps2 controler to replace joystick in TELEOP mode. In this version,
+ *  - function motor_TELEOP_node_v1(): 
+ *    - will handle an on the spot rotation by setting one motor to full speed and the opposite one to 0,
+ *      wich meens that full X left or full X right stick value while Y stick is in at rest will produce no movement.
+ *
+ * KVA_V2: continuing integration. Changes for pin assignment for motorization.
+ * 
+ * 2019-06-23: projet created in my GitHub account. Pushed from KVA_V2 into ...Kookye_vehicule/kva.
+ * History: 
+ * ... will be maintained here and,
+ * ... using issues, etc., on GitHub when mentionned
+ */
+
+// ************** Compile directives
+#define COMPILE_MAIN
+//#define DUE_TIMER // see DueTimer0 tab
+//************************************************
+
+#ifdef COMPILE_MAIN
+#include <DueTimer.h>
+
+// robot vehicule modes of operation see vehiculeModes.txt
+byte opMode;                             //operation mode
+#define JUST_RUN 30                      // just run
+#define MEASURE_AND_CALIBRATE_MOTORS 40  //used to test what ever needs testing
+#define TELEOP 10                        //Teleoperation with a joystick // TELEOP: Joystick operation
+#define NADDOCAM 20                      //NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode:
+/* NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode: 
+ *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
+*/
+
+//************************************************
+// defines and definitions for MEASURE_AND_CALIBRATE_MOTORS opMode only
+//************************************************
+
+#define NBR_OF_SAMPLINGS 70         // nbr max of sampling
+#define SAMPLING_INTERVAL 1000000 // sampling interval = timer interval set in microseconds (10e-6s)
+volatile unsigned long result_table[3][NBR_OF_SAMPLINGS]; // result table
+volatile short int mcount{0}; // counter for the reading during the mesurements
+
+/* Measuring the speed and direction of two motors DC using an L298N motor bridge.
  * Hall encoders are used as sensors
  * 
- * This test makes use of two Robokax Infrared Obstacle Avoidance module placed on each side
+ * The MEASURE_AND_CALIBRATE_MOTORS opMode makes use of two Robokax Infrared Obstacle Avoidance module placed on each side
  * off ONE MOTOR drive wheel (the emiter of one sensor directed toward the receptor of the other) in order
  * to get a direct reading for that wheel. The drive wheel has tree spokes thus
- * gives tree readings per turn.
+ * gives 3 readings per turn.
  * 
  * (motors_measure_) Version 2. Op mode is MEASURE_AND_CALIBRATE_MOTORS, adds this:
  * - DueTimer from Ivan Seidel is used instead of Arduino millis() function
@@ -19,41 +60,12 @@
  * as comma delimited numbers. The result can be copied to a spreadsheet for analysis,
  * 
  * *** (motors_measure_) see results in /home/dominique/Arduino/Documentation/results/2.8 - measuring motors
- 
- * 
- * KVA V1: first integration of Ps2 controler to replace joystick in TELEOP mode. In this version,
- *  - function motor_TELEOP_node_v1(): 
- *    - will handle an on the spot rotation by setting one motor to full speed and the opposite one to 0,
- *      wich meens that full X left or full X right stick value while Y stick is in at rest will produce no movement.
- *
- * KVA_V2: continuing integration. Changes for pin assignment for motorization.
- * 
- * 2019-06-23: projet created in my GitHub account. Pushed from KVA_V2 into ...Kookye_vehicule/kva.
- * History will be maintained using issues, etc., on GitHub
-  */
+ */
 
-// ************** Compile directives
-#define COMPILE_MAIN
-//#define DUE_TIMER // see DueTimer tab
-//************************************************
+//*******************************************
+//************* motor control definitions
+//*******************************************
 
-#ifdef COMPILE_MAIN
-#include <DueTimer.h>
-
-// robot vehicule modes of operation see vehiculeModes.txt
-#define JUST_RUN 30                     // just run
-#define MEASURE_AND_CALIBRATE_MOTORS 40  //used to test what ever needs testing
-#define TELEOP 10                       //Teleoperation with a joystick // TELEOP: Joystick operation
-#define NADDOCAM 20                     //NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode:
-/* NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode: 
- *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
-*/
-byte opMode; //operation mode
-
-#define NBR_OF_SAMPLINGS 70         // nbr max of sampling
-#define SAMPLING_INTERVAL 1000000 // sampling interval = timer interval set in microseconds (10e-6s)
-
-//************* measuring and motor control definitions
 // left motor on L298N channel A
 #define ENA_L 3 // pwm pin
 #define IN1   29
@@ -63,9 +75,6 @@ byte opMode; //operation mode
 #define ENB_R 2 // pwm pin
 #define IN3   25
 #define IN4   23
-
-volatile unsigned long result_table[3][NBR_OF_SAMPLINGS]; // result table
-volatile short int mcount{0}; // counter for the reading
 
 volatile unsigned long S1_L_count {0}; // running count for Hall sensor S1, left motor
 volatile unsigned long S1_R_count {0}; // running count for Hall sensor S1, right motor
@@ -82,6 +91,8 @@ DueTimer myTimer = Timer.getAvailable();
 
 //*************************************************************
 //definitions for Ps2 controler for teleoperation
+//*************************************************************
+
 #include <PS2X_lib.h>  //revised library from KurtE from Github
 PS2X ps2x; // create PS2 Controller Class object
 
