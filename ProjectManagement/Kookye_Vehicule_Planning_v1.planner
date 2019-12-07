@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<project name="Kookye Vehicule Planning" company="" manager="Dominique Martel" phase="" project-start="20181228T000000Z" mrproject-version="2" calendar="1">
+  <properties/>
+  <phases>
+    <phase name="Developpement"/>
+    <phase name="Integration"/>
+  </phases>
+  <calendars>
+    <day-types>
+      <day-type id="0" name="Working" description="A default working day"/>
+      <day-type id="1" name="Nonworking" description="A default non working day"/>
+      <day-type id="2" name="Use base" description="Use day from base calendar"/>
+    </day-types>
+    <calendar id="1" name="Default">
+      <default-week mon="0" tue="0" wed="0" thu="0" fri="0" sat="1" sun="0"/>
+      <overridden-day-types>
+        <overridden-day-type id="0">
+          <interval start="0800" end="1200"/>
+          <interval start="1300" end="1700"/>
+        </overridden-day-type>
+      </overridden-day-types>
+      <days>
+        <day date="20190322" type="day-type" id="0"/>
+      </days>
+    </calendar>
+  </calendars>
+  <tasks>
+    <task id="1" name="Structure, spaces and hardware" note="" work="201600" start="20181228T000000Z" end="20181230T170000Z" work-start="20181228T080000Z" percent-complete="10" priority="0" type="normal" scheduling="fixed-work">
+      <task id="2" name="Measuring and naming spaces (see note)" note="naming of plates, bulkhead and decks&#10;see /home/dominique/Arduino/Documentation/Robotics general notes/vehicule_spaces_v1.odt" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="3" name="Measuring distance using approximate wheel size (preliminary tests)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="4" name="aB Decks: adding a hole to secure mounting" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="2" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="5" name="aB Decks: prepare mounting for H-bridge enclosure" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="2" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="6" name="eF Decks: adding two holes to secure standoffs" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="2" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="7" name="Batteries tray" note="" work="57600" start="20181228T000000Z" end="20181230T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="8" name="Planning the batteries tray" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="70" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="9" name="Building the batteries tray using Microrax" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="50" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="8" type="FS"/>
+          </predecessors>
+        </task>
+      </task>
+    </task>
+    <task id="10" name=" Motors - control and integration (started 2019-01-03)" note="" work="1209600" start="20181228T000000Z" end="20190113T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="11" name="Wiring L298N to Arduino Due for Motor control &#x2013; Direction and speed only" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="12" name="Sketch moteurs_v2.ino: determine wiring for motor direction control at full speed" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="11" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="13" name="L298N to Arduino Due for Motor control using (preliminary) PID" note="" work="115200" start="20181230T170000Z" end="20190101T170000Z" work-start="20181231T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="14" name="noting to do" note="" work="28800" start="20181230T170000Z" end="20181231T170000Z" work-start="20181231T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="12" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="15" name="Wiring motor Hall sensors to Arduino Due via level shifter" note="" work="28800" start="20181230T170000Z" end="20181231T170000Z" work-start="20181231T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="12" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="16" name="noting to do" note="" work="28800" start="20181230T170000Z" end="20181231T170000Z" work-start="20181231T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="12" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="17" name="Sketch motor_PID_v1.ino using interrup and button to change motor direction" note="" work="28800" start="20181231T170000Z" end="20190101T170000Z" work-start="20190101T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="15" type="FS"/>
+          </predecessors>
+        </task>
+      </task>
+      <task id="18" name="Testing motor control using a joystick: sketch motors_joystick_v1.ino" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="11" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="19" name="Correcting motor rotation direction" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="11" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="20" name="Motor control functions: sketch motors_joystick_v1.ino" note="" work="28800" start="20181228T170000Z" end="20181230T170000Z" work-start="20181230T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="11" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="21" name="Measuring the speed motors M1, M2 and M3: sketch motors_measures_v1.ino" note="" work="57600" start="20181231T170000Z" end="20190102T170000Z" work-start="20190101T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="22" name="Defining objectives" note="" work="28800" start="20181231T170000Z" end="20190101T170000Z" work-start="20190101T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="15" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="23" name=" Preliminary results for motors M1 and M2: phase 1" note="" work="28800" start="20190101T170000Z" end="20190102T170000Z" work-start="20190102T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="22" type="FS"/>
+          </predecessors>
+        </task>
+      </task>
+      <task id="24" name="Measuring the speed motors M1, M2 and M3: sketch motors_measures_v2.ino" note="" work="172800" start="20190102T170000Z" end="20190107T170000Z" work-start="20190103T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="25" name="Changes from sketch v1 to v2" note="" work="28800" start="20190102T170000Z" end="20190103T170000Z" work-start="20190103T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="23" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="26" name="Preliminary results for motor M1 and M2: phase 2" note="" work="28800" start="20190102T170000Z" end="20190103T170000Z" work-start="20190103T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="23" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="27" name="Measuring motor M1, M2 and M3: sketch motors_measures_v3.ino" note="" work="115200" start="20190103T170000Z" end="20190107T170000Z" work-start="20190104T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="28" name="Changes from version 2" note="" work="28800" start="20190103T170000Z" end="20190104T170000Z" work-start="20190104T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+            <predecessors>
+              <predecessor id="1" predecessor-id="26" type="FS"/>
+            </predecessors>
+          </task>
+          <task id="29" name="Measuring motors (motors_measure_v3)" note="" work="86400" start="20190103T170000Z" end="20190107T170000Z" work-start="20190104T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+            <task id="30" name="Measures tables" note="" work="28800" start="20190103T170000Z" end="20190104T170000Z" work-start="20190104T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+              <predecessors>
+                <predecessor id="1" predecessor-id="26" type="FS"/>
+              </predecessors>
+            </task>
+            <task id="31" name="Data analysis" note="" work="28800" start="20190104T170000Z" end="20190106T170000Z" work-start="20190106T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+              <predecessors>
+                <predecessor id="1" predecessor-id="30" type="FS"/>
+              </predecessors>
+            </task>
+            <task id="32" name="Conclusions" note="" work="28800" start="20190106T170000Z" end="20190107T170000Z" work-start="20190107T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+              <predecessors>
+                <predecessor id="1" predecessor-id="31" type="FS"/>
+              </predecessors>
+            </task>
+          </task>
+        </task>
+      </task>
+      <task id="33" name="Find the balance between the two motors: is this necessary??? (see note)" note="Fri 22 Mar 2019, 21:35&#10;Right motor runs faster than left at pwm set&#10;by sketch.&#10; Using the data from Hall sensors, find the&#10;correct value to get approximate same speed,&#10;that is without resorting to PID." work="28800" start="20190107T170000Z" end="20190108T170000Z" work-start="20190108T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="32" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="34" name="Teleoperating the motors with a PS2 remote game controler" note="" work="345600" start="20181228T000000Z" end="20190113T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="35" name="Wiring diagram on SPI ICSP header" note="" work="28800" start="20190107T170000Z" end="20190108T170000Z" work-start="20190108T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="32" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="36" name="Finding the right library for the Arduino Due" note="" work="28800" start="20190108T170000Z" end="20190109T170000Z" work-start="20190109T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <predecessors>
+            <predecessor id="1" predecessor-id="35" type="FS"/>
+          </predecessors>
+        </task>
+        <task id="37" name="Preliminary testing the KurtE library" note="" work="86400" start="20190109T170000Z" end="20190113T170000Z" work-start="20190110T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="38" name="PS2X_Example_V1: finding the right settings for PWI on ICSP header" note="" work="57600" start="20190109T170000Z" end="20190111T170000Z" work-start="20190110T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+            <predecessors>
+              <predecessor id="1" predecessor-id="36" type="FS"/>
+            </predecessors>
+          </task>
+          <task id="39" name="PS2X_Example_V2: function setup for the controler" note="" work="28800" start="20190111T170000Z" end="20190113T170000Z" work-start="20190113T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+            <predecessors>
+              <predecessor id="1" predecessor-id="38" type="FS"/>
+            </predecessors>
+          </task>
+        </task>
+        <task id="40" name="Integration of PS2 in KVA_v1.INO: from motors_measure_v3.ino (this should be the start of the main program)" note="" work="201600" start="20181228T000000Z" end="20190102T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="41" name="Integrating PS2X_Example_V3: mapping Ps2 stick values to analog sick" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+          <task id="42" name="KVA_v1.INO: motor_TELEOP_node_v1()" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+          <task id="43" name="KVA_v1.INO: motor_TELEOP_node_v2()" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+          <task id="44" name="Testing TELEOP mode (workbench)" note="" work="115200" start="20181228T170000Z" end="20190102T170000Z" work-start="20181230T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+            <predecessors>
+              <predecessor id="1" predecessor-id="41" type="FS"/>
+            </predecessors>
+          </task>
+        </task>
+      </task>
+      <task id="45" name="L298N - integration to vehicule" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="46" name="Wiring (see 2.1)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="47" name="Enclosure assembly" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="48" name="Operating the motors using functions for directionnal control and PID speed regulation" note="" work="288000" start="20181228T000000Z" end="20190102T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="49" name="PID principle readings" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="50" name="PID for moving in a straight line" note="" work="57600" start="20181228T000000Z" end="20181230T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="51" name="PID for turning on the spot" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="52" name="Turning under way: stop and turn implementation" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="53" name="Turning under way: turn as we go implementation (some kind of trajectory planning)" note="" work="144000" start="20181228T000000Z" end="20190102T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+    </task>
+    <task id="54" name="Level shifting 3.3V-5V logic bus" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="55" name="Power supply" note="" work="259200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="56" name="Batteries and charge system tests and acceptance" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="57" name="Battery 4S and 3S nominal values: documentation" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="58" name="SKYRC charger test and acceptance" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="59" name="Charger programming for each battery" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="60" name="Test and acceptance of Drok DC/DC Buck Converter" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="61" name="Drok 12V - 5.5 37V to 1-27V using trim pot" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="62" name="Drok 5V - 12 to 24V to 5V fixed" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="63" name="Test and acceptance of Venom LVM (Low Voltage Monitors) and extension balance cables" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="64" name="Battery 4S" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="65" name="Battery 3S" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="66" name="Main power cable management" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="67" name="12V power bus" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="68" name="DC jack 12 V from Drok 12V" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        </task>
+        <task id="69" name="5V DC power bus" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+    </task>
+    <task id="70" name="Software" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="71" name="Display, controls and telemetry" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="72" name="Off board telemetry display and control panel (see note for ideas)" note="Sun 24 Mar 2019, 12:08&#10;TFT display would be nice like Nextion.&#10;Watch videos from Andreas Spiess on this topic.&#10;&#10;TFT: can display and has touch control&#10;Needs editor on Windows&#10;One MicroSD card&#10;&#10;" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="73" name="On board displays and controls" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    </task>
+    <task id="74" name="Sensors" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+  </tasks>
+  <resource-groups/>
+  <resources>
+    <resource id="1" name="Dominique Martel" short-name="DM" type="1" units="0" email="jcdmartel@gmail.com" note="" std-rate="0" calendar="1"/>
+  </resources>
+  <allocations/>
+</project>

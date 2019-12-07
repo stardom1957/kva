@@ -1,0 +1,13 @@
+Robot vehicule modes of driving
+NoDADOCAM:
+Non Directed Autonomous Driving with Obstacle Collision Avoidance mode: the vehicule navigates freely begining driving forward, from a start point while avoiding collisions.
+
+WADAOCAM:
+Waypoint Driving with Autonomous Obstacle Collision Avoidance Mode: the vehicule follows a series of waypoints  from a start position to a specific destination while avouding collisions.
+
+LiFAOCAM:
+Autonomous Line Following with Obstacle Collision Avoidance Mode: the vehicule follows a path delinated by a colored line traced on the ground while avoiding collisions with obstacles. Upon contournig an obstacle, the vehicule will attempt to return on the ligne. The line can trace a closed loop or can be open ended. Different sub modes can be implemented for this mode: i. e., the vehicule can stop or turn arround and continue at the end of an opend ended path.
+
+TELEOP:
+Tele Operation: the vehicule is fully controled (piloted) by a remote operator. That mode doesn't provide for any type of obstacle collision avoidance.
+

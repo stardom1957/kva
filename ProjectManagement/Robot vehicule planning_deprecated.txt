@@ -1,0 +1,10 @@
+1. Wiring motors on L298N for software control modes, no PID, no turns.
+2. Wiring motors Hall sensors for speed and direction measurements or PID control.
+3. Controling motors with a joystick (PRECOM mode).
+4. Measuring motors speed and direction using Hall sensors.
+5. With motors mounted in close proximity, determine if Hall sensors affect each other.
+6. Controling motors by software (not PRECOM mode) while regulating motors speed with PID, no turns.
+7. Controling motors by software (not PRECOM mode) while regulating motors speed with PID, including turns.
+8. Mounting batteries - power management - 5 VDC power bus - 3.3 VDC power bus.
+9. Study requirement for a (logic shifting 5 VDC to) 3.3 VDC logic bus.
+
