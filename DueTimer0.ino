@@ -1,4 +1,4 @@
-#ifdef DUE_TIMER
+#ifdef DUE_TIMER_TEST0
 #include <DueTimer.h>
 
 volatile boolean timesUp = false;
@@ -19,7 +19,7 @@ void setup(){
 unsigned int t{0};
 void loop(){
   myTimer.start();
-  while(!timesUp){
+  while(!timesUp) {
   }
   myTimer.stop();
   timesUp=false;

@@ -11,11 +11,20 @@
  * History: 
  * ... will be maintained here and,
  * ... using issues, etc., on GitHub when mentionned
+ * Issue 2.12 - Integrating and testing motor sensors through logic level shifter (8 ch):
+ *  2.12.2 : 
+ *   - DueTime encoderTimer is enabled during setup, but does not run if PWM signal is routed to pin 2 (ENB_R)
+ *     - see new definition for ENB_R
+ *   - all code for measuring motors is removed and modified to simply report motor encoder counts
+ *     every time the program passes trough.
  */
 
 // ************** Compile directives
-#define COMPILE_MAIN
-//#define DUE_TIMER // see DueTimer0 tab
+//#define COMPILE_MAIN
+//#define DUE_TIMER_TEST0 // test only, see DueTimer0 tab
+//#define DUE_TIMER_TEST1 // test only, see DueTimer1 tab
+#define JUMPERS
+
 //************************************************
 
 #ifdef COMPILE_MAIN
@@ -23,6 +32,7 @@
 
 // robot vehicule modes of operation see vehiculeModes.txt
 byte opMode;                             //operation mode
+#define STANDBY 0                        //at rest but diagnostic and communication running
 #define JUST_RUN 30                      // just run
 #define MEASURE_AND_CALIBRATE_MOTORS 40  //used to test what ever needs testing
 #define TELEOP 10                        //Teleoperation with a joystick // TELEOP: Joystick operation
@@ -35,59 +45,41 @@ byte opMode;                             //operation mode
 // defines and definitions for MEASURE_AND_CALIBRATE_MOTORS opMode only
 //************************************************
 
-#define NBR_OF_SAMPLINGS 70         // nbr max of sampling
-#define SAMPLING_INTERVAL 1000000 // sampling interval = timer interval set in microseconds (10e-6s)
-volatile unsigned long result_table[3][NBR_OF_SAMPLINGS]; // result table
-volatile short int mcount{0}; // counter for the reading during the mesurements
-
-/* Measuring the speed and direction of two motors DC using an L298N motor bridge.
- * Hall encoders are used as sensors
- * 
- * The MEASURE_AND_CALIBRATE_MOTORS opMode makes use of two Robokax Infrared Obstacle Avoidance module placed on each side
- * off ONE MOTOR drive wheel (the emiter of one sensor directed toward the receptor of the other) in order
- * to get a direct reading for that wheel. The drive wheel has tree spokes thus
- * gives 3 readings per turn.
- * 
- * (motors_measure_) Version 2. Op mode is MEASURE_AND_CALIBRATE_MOTORS, adds this:
- * - DueTimer from Ivan Seidel is used instead of Arduino millis() function
- * - motors will run continuouly.
- * - results are taken every second
- * 
- * (motors_measure_) Version 3. Op mode is MEASURE_AND_CALIBRATE_MOTORS, adds this:
- * - the function ISR_timer1 will do all the work. Grab the counter values and put them into a table.
- * - the program will count during 1 s and there will be NBR_OF_SAMPLINGS
- * - the results will be displayed on the serial monitor at the end of the run 
- * as comma delimited numbers. The result can be copied to a spreadsheet for analysis,
- * 
- * *** (motors_measure_) see results in /home/dominique/Arduino/Documentation/results/2.8 - measuring motors
- */
+#define ENCODER_MEASURE_INTERVAL 100000 // sampling interval = timer interval; set in microseconds (10e-6s)
 
 //*******************************************
 //************* motor control definitions
 //*******************************************
 
 // left motor on L298N channel A
-#define ENA_L 3 // pwm pin
+#define ENA_L 4 // pwm pin
 #define IN1   29
 #define IN2   27
 
 // right motor on L298N channel B
-#define ENB_R 2 // pwm pin
+//#define ENB_R 2 // pwm pin
+#define ENB_R 3 // pwm pin
 #define IN3   25
 #define IN4   23
 
-volatile unsigned long S1_L_count {0}; // running count for Hall sensor S1, left motor
-volatile unsigned long S1_R_count {0}; // running count for Hall sensor S1, right motor
+//*************** motors encoders (Hall) sensors definitions
+//setup timer interrupt for motor encoders
+DueTimer encoderTimer = Timer.getAvailable();
 
+volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
 volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
+volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
+
+volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
 volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
+volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
+
+volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
 
 const byte S1motorEncoder_L_PIN = 22;  // motor encoder S1 A pin
 const byte S2motorEncoder_L_PIN = 24;  // motor encoder S2 B pin 
 const byte S1motorEncoder_R_PIN = 26;  // motor encoder S1 pin
 const byte S2motorEncoder_R_PIN = 28;  // motor encoder S2 pin
-
-DueTimer myTimer = Timer.getAvailable();
 
 //*************************************************************
 //definitions for Ps2 controler for teleoperation
@@ -102,30 +94,25 @@ PS2X ps2x; // create PS2 Controller Class object
 #define SPI_CLK  76
 #define PS2X_CS  49 // chip select for PS2X controler
 
-int PS2_config_result{254}; // controler never set = 254
+int  PS2_config_result{254}; // controler never set = 254
 byte PS2_type{0};
 //byte PS2_vibrate_level{0}; // no vibration
 
 
 
 //**************** FUNCTIONS DEFINITIONS
-void ISR_timer1(void) {
-     noInterrupts(); //stop all interrupts
+void ISR_timerEncoder(void) {
+     //debug noInterrupts(); //stop all interrupts
 
-     //S1_L_count for timer period = S1_L_count - S1_L_count_previous;
-     result_table[0][mcount] = S1_L_count - S1_L_count_previous;
+     //S1_L_count for timer period deltaCount_L = S1_L_count - S1_L_count_previous;
+     deltaCount_L = S1_L_count - S1_L_count_previous;
      S1_L_count_previous = S1_L_count;
 
-     //S1_R_count for timer period = S1_R_count - S1_R_count_previous;
-     result_table[1][mcount] = S1_R_count - S1_R_count_previous;
+     //S1_R_count for timer period deltaCount_R = S1_R_count - S1_R_count_previous;
+     deltaCount_R = S1_R_count - S1_R_count_previous;
      S1_R_count_previous = S1_R_count;
-
-     ++mcount; // number of samplings
-     interrupts(); //restart all interupts
-
-/*   attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
-     attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
-*/
+     ++encoderTimerLoopCount;
+     // debug interrupts(); //restart all interupts
 }
 
 // ISR for the sensor counters
@@ -168,6 +155,9 @@ void motorRightSet(int speed, byte direction) {
      analogWrite(ENB_R, speed);
    }
    break;
+   
+   default:
+     ; //nothing
  }
 }
 
@@ -190,15 +180,17 @@ void motorLeftSet(int speed, byte direction) {
      analogWrite(ENA_L, speed);
    }
    break;
+
+   default:
+     ; //nothing
  }
 }
 
 void motorRightForward(int speed) {
-  // moteur droit avance
   if (speed >= 100 && speed <= 255) {
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, HIGH);
-    analogWrite(ENB_R, speed);
+    analogWrite(ENB_R, speed); //why is this line prevents encoderTimer from working? 
   }
 }
 
@@ -449,6 +441,8 @@ void just_run() {
 
 void setup()
 {
+  //debug noInterrupts(); //no interrupts at this point
+
   //debug we might use this later
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
@@ -469,19 +463,18 @@ void setup()
   pinMode(S1motorEncoder_R_PIN,INPUT);
   pinMode(S2motorEncoder_R_PIN,INPUT);
 
-  //timer interrupt settings
-  myTimer.setPeriod(SAMPLING_INTERVAL); // in microseconds
-  myTimer.attachInterrupt(ISR_timer1);
-
   motorAllStop();
 
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
 
-//  debug noInterrupts(); //no interrupts for now
   attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
   attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
-// debug interrupts(); // start counting motor rotation
-  myTimer.start();
+
+  //setup timer interrupt for motor encoders
+  encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
+  encoderTimer.attachInterrupt(ISR_timerEncoder);
+  encoderTimer.start();
+  //debug interrupts(); // allorw interrupt starting here
 }
 
 void loop()
@@ -512,33 +505,29 @@ void loop()
     //************************************************
     //***************** MEASURE_AND_CALIBRATE_MOTORS *
     case MEASURE_AND_CALIBRATE_MOTORS:
-     // the measures will start here
-     motorRightForward(255);
-     motorLeftForward(255);
-     delay(2000); // wait 2 s to stabilize motors
-
-     interrupts();
-     myTimer.start();
-
-     while(mcount < NBR_OF_SAMPLINGS){ // wait for NBR_OF_SAMPLINGS readings to occur
-     }
-     
-     // display results on Serial Monitor as comma delimited values
-     // for future data analysis on spreadsheet
-     // format left, right, ir raw value
-     
-     for (short int r=0; r < NBR_OF_SAMPLINGS; ++r) {
-      for (short int v=0; v < 3; ++v) {
-        Serial.print(result_table[v][r], DEC);
-        if (v!=2) Serial.print(",");
-       }
-       Serial.println();
-     }
-
-     myTimer.stop();
+     Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
+     motorLeftForward(128);
+     motorRightForward(128);
+     delay(6000); // run for n sec
      motorAllStop();
-     detachInterrupt(S1motorEncoder_L_PIN);
-     detachInterrupt(S1motorEncoder_R_PIN);
+     
+     // display results on Serial Monitor
+
+     Serial.print("encoderTimerLoopCount= ");
+     Serial.println(encoderTimerLoopCount, DEC);
+     Serial.println("---------------------------");
+     Serial.print("deltaCount_L= ");
+     Serial.println(deltaCount_L, DEC);
+     Serial.print("deltaCount_R= ");
+     Serial.println(deltaCount_R, DEC);
+
+     Serial.println("--------TOTALS------------\n");
+     Serial.print("S1_L_count= ");
+     Serial.println(S1_L_count, DEC);
+     Serial.print("S1_R_count= ");
+     Serial.println(S1_R_count, DEC);
+
+     Serial.println("End of motor measure program.");
 
      while(true){
       ; // we do this only once
