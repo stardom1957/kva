@@ -8,7 +8,7 @@
  *  - implemented controler setup in main loop in case contact is lost
  *  - removed unnecessary code (Guitar Hero, etc.), but not from library
  */
-#ifdef COMPILE_CODE3
+#ifdef COMPILE_PS2EXAMPLE
 
 //definitions for Ps2 controler for teleoperation
 #include <PS2X_lib.h>  //revised library from KurtE from Github
@@ -74,10 +74,10 @@ void loop(){
  //debug if(PS2_config_result == 1) //skip loop if no controller found
  //debug  return; 
  
- if(PS2_config_result != 0) {//try to setup controler p to 3 times
+ if(PS2_config_result != 0) {//try to setup controler p to 10 times
   Serial.println("Setting controler...");
   byte i;
-  for (i=0; i<3; i++) {
+  for (i=0; i<10; i++) {
    set_ps2x();
    if (PS2_config_result == 0) break;
    delay(50);

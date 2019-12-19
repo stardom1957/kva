@@ -17,13 +17,17 @@
  *     - see new definition for ENB_R
  *   - all code for measuring motors is removed and modified to simply report motor encoder counts
  *     every time the program passes trough.
+ * Issue 2.10.6: teleoperating -  emergency maneuvers
+ *  - slow in place rotation using PS2 controler l/r buttons
+ *  - slow forward/revers using PS2 controler up/down buttons
  */
 
 // ************** Compile directives
-//#define COMPILE_MAIN
+#define COMPILE_MAIN
 //#define DUE_TIMER_TEST0 // test only, see DueTimer0 tab
 //#define DUE_TIMER_TEST1 // test only, see DueTimer1 tab
-#define JUMPERS
+//#define COMPILE_PS2EXAMPLE
+//#define JUMPERS_AS_INPUT
 
 //************************************************
 
@@ -103,6 +107,7 @@ byte PS2_type{0};
 //**************** FUNCTIONS DEFINITIONS
 void ISR_timerEncoder(void) {
      //debug noInterrupts(); //stop all interrupts
+     //debug possibly just detach this ISR here and reattach at the end
 
      //S1_L_count for timer period deltaCount_L = S1_L_count - S1_L_count_previous;
      deltaCount_L = S1_L_count - S1_L_count_previous;
@@ -161,6 +166,17 @@ void motorRightSet(int speed, byte direction) {
  }
 }
 
+// rotate the vehicule in place l and r
+void vehiculeRotateRight(int speed) {
+ motorRightSet(speed, REVERSE);
+ motorLeftSet(speed, FORWARD);
+}
+
+void vehiculeRotateLeft(int speed) {
+ motorRightSet(speed, FORWARD);
+ motorLeftSet(speed, REVERSE);
+}
+
 void motorLeftSet(int speed, byte direction) {
  switch (direction) {
   case FORWARD:
@@ -186,40 +202,8 @@ void motorLeftSet(int speed, byte direction) {
  }
 }
 
-void motorRightForward(int speed) {
-  if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN3, LOW);
-    digitalWrite(IN4, HIGH);
-    analogWrite(ENB_R, speed); //why is this line prevents encoderTimer from working? 
-  }
-}
-
-void motorRightReverse(int speed) {
-  if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    analogWrite(ENB_R, speed);
-  }
-}
-
 void motorRightStop(void) {
     digitalWrite(ENB_R, LOW);
-}
-
-void motorLeftForward(int speed) {
-  if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    analogWrite(ENA_L, speed);
-  }
-}
-
-void motorLeftReverse(int speed) {
-  if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    analogWrite(ENA_L, speed);
-  }
 }
 
 void motorLeftStop(void) {
@@ -277,14 +261,14 @@ void set_ps2x(void) {
 void motor_TELEOP_node_v1(void) {
   byte leftMotorDirection;
   byte rightMotorDirection;
-  int ps2LY;
-  int ps2LX;  
+  int ps2RY; //we are using the right hand joystick
+  int ps2RX;  
   const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
   
-  if(PS2_config_result == 254) { //fisrt time in, try to setup controler up to 3 times
+  if(PS2_config_result == 254) { //try to setup controler up to 10 times
    // debug Serial.println("Setting controler...");
    byte sc;
-   for (sc=0; sc<3; sc++) {
+   for (sc=0; sc<10; sc++) {
      set_ps2x();
      if (PS2_config_result == 0) break;
      delay(50);
@@ -300,48 +284,97 @@ void motor_TELEOP_node_v1(void) {
   //ps2x.read_gamepad(false, PS2_vibrate_level);          //read controller and set large motor to spin at 'PS2_vibrate_level' speed
   ps2x.read_gamepad();
 
+  //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
+    
+  /*
+   PSB_PAD_UP      0x0010
+   PSB_PAD_RIGHT   0x0020
+   PSB_PAD_DOWN    0x0040
+   PSB_PAD_LEFT    0x0080
+   ps2x.ButtonPressed(PSB_RED)
+   ps2x.ButtonReleased(PSB_PINK)
+  */    
+    int slow_motors {200};
+    //slow forward
+    if(ps2x.ButtonPressed(PSB_PAD_UP)){
+      motorLeftSet(slow_motors, FORWARD);
+      motorRightSet(slow_motors, FORWARD);
+    }
+    if(ps2x.ButtonReleased(PSB_PAD_UP)){
+      motorAllStop();
+    }
+
+    //slow reverse
+    if(ps2x.ButtonPressed(PSB_PAD_DOWN)){
+      motorLeftSet(slow_motors, REVERSE);
+      motorRightSet(slow_motors, REVERSE);
+    }   
+    if(ps2x.ButtonReleased(PSB_PAD_DOWN)){
+      motorAllStop();
+    }
+
+    //slow left in place retation    
+    if(ps2x.ButtonPressed(PSB_PAD_LEFT)){
+      vehiculeRotateLeft(slow_motors);
+    }
+    if(ps2x.ButtonReleased(PSB_PAD_LEFT)) {
+      motorAllStop();
+    }
+
+    //slow in place right rotation
+    if(ps2x.ButtonPressed(PSB_PAD_RIGHT)){
+       vehiculeRotateRight(slow_motors);
+    }
+    if(ps2x.ButtonReleased(PSB_PAD_RIGHT)) {
+      motorAllStop();
+    }
+
+  
+  //**************** JOYSTICK OPERATION **********************
   //****************** left stick will be read only if button PSB_L1 is held pressed
-  // dead man grip
-  if(ps2x.Button(PSB_L1)) { // we are using the left stick
-    ps2LX = ps2x.Analog(PSS_LX); //Raw left stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
-    ps2LY = ps2x.Analog(PSS_LY); //Raw left stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
+  //****************** this is the dead man's grip
+  if(ps2x.Button(PSB_L1)) {
+
+    // reading the right stick values
+    ps2RX = ps2x.Analog(PSS_RX); //Raw right stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
+    ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
 
 /* debug
-    Serial.print(ps2LX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
+    Serial.print(ps2RX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
     Serial.print(",");
-    Serial.println(ps2LY, DEC); 
+    Serial.println(ps2RY, DEC); 
 */
-   // PSS_LY determines if this is a forward or reverse motion
-   // FORWARD is PSS_LY <= (127 - atRestZone)
-   // REVERSE is PSS_LY >= (127 + atRestZone)
+/* PSS_RY determines if this is a forward or reverse motion
+   FORWARD is PSS_RY <= (127 - atRestZone)
+   REVERSE is PSS_RY >= (127 + atRestZone)
    
-   // Do this by reading the Verticle Value Y
-   // Apply results to MotorSpeed and to Direction
-
-   if (ps2LY >= (127 + atRestZone))
+   Do this by reading the Verticle Value Y
+   Apply results to MotorSpeed and to Direction
+*/
+   if (ps2RY >= (127 + atRestZone))
    {
      // This is reverse
      leftMotorDirection = REVERSE;
      rightMotorDirection = REVERSE;
 
-     //motor speeds is determined from stick values ps2LY
+     //motor speeds is determined from stick values ps2RY
      // we need to map the reading from 0 to 255
 
-     motorSpeed_L = map(ps2LY, (127 + atRestZone), 255, 0, 255);
-     motorSpeed_R = map(ps2LY, (127 + atRestZone), 255, 0, 255);
+     motorSpeed_L = map(ps2RY, (127 + atRestZone), 255, 0, 255);
+     motorSpeed_R = map(ps2RY, (127 + atRestZone), 255, 0, 255);
   }
   
-  else if (ps2LY <= (127 - atRestZone))
+  else if (ps2RY <= (127 - atRestZone))
   {
     // This is Forward
      leftMotorDirection = FORWARD;
      rightMotorDirection = FORWARD;
 
-    //motor speeds is determined from stick values ps2LY
+    //motor speeds is determined from stick values ps2RY
     //we need to map reading from 0 to 255
 
-    motorSpeed_L = map(ps2LY, (127 - atRestZone), 0, 0, 255);
-    motorSpeed_R = map(ps2LY, (127 - atRestZone), 0, 0, 255); 
+    motorSpeed_L = map(ps2RY, (127 - atRestZone), 0, 0, 255);
+    motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
 
   }
   else
@@ -361,28 +394,28 @@ void motor_TELEOP_node_v1(void) {
    // LEFT  is PSS_LX <= (128 - atRestZone)
    // RIGHT is PSS_LX >= (128 + atRestZone)
 
-  if (ps2LX <= (128 - atRestZone)) {
+  if (ps2RX <= (128 - atRestZone)) {
     // We move to the left
     // Map the number to a value of 255 maximum
 
-    ps2LX = map(ps2LX, 0, (128 - atRestZone), 255, 0);
+    ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
         
 
-    motorSpeed_L = motorSpeed_L - ps2LX;
-    motorSpeed_R = motorSpeed_R + ps2LX;
+    motorSpeed_L = motorSpeed_L - ps2RX;
+    motorSpeed_R = motorSpeed_R + ps2RX;
 
     // Don't exceed range of 0-255 for motor speeds
 
     if (motorSpeed_L < 0) motorSpeed_L = 0;
     if (motorSpeed_R > 255) motorSpeed_R = 255;
   }
-    else if (ps2LX >= (128 + atRestZone)) {
+    else if (ps2RX >= (128 + atRestZone)) {
     // we move to the right
     // Map the number to a value of 255 maximum
 
-      ps2LX = map(ps2LX, (128 + atRestZone), 255, 0, 255);
-      motorSpeed_L = motorSpeed_L + ps2LX;
-      motorSpeed_R = motorSpeed_R - ps2LX;
+      ps2RX = map(ps2RX, (128 + atRestZone), 255, 0, 255);
+      motorSpeed_L = motorSpeed_L + ps2RX;
+      motorSpeed_R = motorSpeed_R - ps2RX;
 
     // Don't exceed range of 0-255 for motor speeds
 
@@ -506,8 +539,8 @@ void loop()
     //***************** MEASURE_AND_CALIBRATE_MOTORS *
     case MEASURE_AND_CALIBRATE_MOTORS:
      Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
-     motorLeftForward(128);
-     motorRightForward(128);
+     motorLeftSet(128, FORWARD);
+     motorRightSet(128, FORWARD);
      delay(6000); // run for n sec
      motorAllStop();
      

@@ -138,4 +138,37 @@ void loop()
  }
 
 }
+
+void motorRightForward(int speed) {
+  if (speed >= 100 && speed <= 255) {
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENB_R, speed); //why is this line prevents encoderTimer from working? 
+  }
+}
+
+void motorRightReverse(int speed) {
+  if (speed >= 100 && speed <= 255) {
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENB_R, speed);
+  }
+}
+
+void motorLeftForward(int speed) {
+  if (speed >= 100 && speed <= 255) {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    analogWrite(ENA_L, speed);
+  }
+}
+
+void motorLeftReverse(int speed) {
+  if (speed >= 100 && speed <= 255) {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    analogWrite(ENA_L, speed);
+  }
+}
+
 #endif

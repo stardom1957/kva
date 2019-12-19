@@ -22,7 +22,7 @@
  *  1  0 MEASURE_AND_CALIBRATE_MOTORS        2
  *  1  1 JUST_RUN                            3
  */
-#ifdef JUMPERS
+#ifdef JUMPERS_AS_INPUT
 
 // robot vehicule modes of operation see vehiculeModes.txt
 byte opMode;                             //operation mode
