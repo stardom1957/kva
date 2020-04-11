@@ -23,20 +23,25 @@
  */
 
 // ************** Compile directives
+#ifndef COMPILE_MAIN
 #define COMPILE_MAIN
-//#define DUE_TIMER_TEST0 // test only, see DueTimer0 tab
-//#define DUE_TIMER_TEST1 // test only, see DueTimer1 tab
-//#define COMPILE_PS2EXAMPLE
-//#define JUMPERS_AS_INPUT
+#endif
+
+//#define DUE_TIMER_TEST0 // developpement test only, see DueTimer0 tab
+//#define DUE_TIMER_TEST1 // developpement test only, see DueTimer1 tab
+//#define COMPILE_PS2EXAMPLE // developpement test only
+//#define JUMPERS_AS_INPUT // developpement only, setting opMode uing jumpers
 
 //************************************************
 
 #ifdef COMPILE_MAIN
 #include <DueTimer.h>
+#include "kva.h"
 
 // robot vehicule modes of operation see vehiculeModes.txt
 byte opMode;                             //operation mode
 #define STANDBY 0                        //at rest but diagnostic and communication running
+#define SENSORS_DEVELOPEMENT 15          // just run
 #define JUST_RUN 30                      // just run
 #define MEASURE_AND_CALIBRATE_MOTORS 40  //used to test what ever needs testing
 #define TELEOP 10                        //Teleoperation with a joystick // TELEOP: Joystick operation
@@ -472,6 +477,68 @@ void just_run() {
   //while(true); //we're only doing this once
 }
 
+
+void measureAndCalibrateMotors(void) {
+  Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
+  motorLeftSet(128, FORWARD);
+  motorRightSet(128, FORWARD);
+  delay(6000); // run for n sec
+  motorAllStop();
+     
+  // display results on Serial Monitor
+   Serial.print("encoderTimerLoopCount= ");
+  Serial.println(encoderTimerLoopCount, DEC);
+  Serial.println("---------------------------");
+  Serial.print("deltaCount_L= ");
+  Serial.println(deltaCount_L, DEC);
+  Serial.print("deltaCount_R= ");
+  Serial.println(deltaCount_R, DEC);
+
+  Serial.println("--------TOTALS------------\n");
+  Serial.print("S1_L_count= ");
+  Serial.println(S1_L_count, DEC);
+  Serial.print("S1_R_count= ");
+  Serial.println(S1_R_count, DEC);
+
+  Serial.println("End of motor measure program.");
+
+  while(true){
+   ; // we do this only once
+  }
+}
+
+// runs the selected opMode
+void runOpMode(byte om) {
+  switch (opMode) {
+    case SENSORS_DEVELOPEMENT:
+     sensorDeveloppement();
+     break;
+
+    case JUST_RUN:
+     just_run();
+     break;
+
+    case TELEOP: // teleoperation by remote
+     motor_TELEOP_node_v1();
+     break;
+
+    //**********************************************
+    //***************** NADDOCAM *******************
+    case NADDOCAM:
+     break;
+
+    //************************************************
+    //***************** MEASURE_AND_CALIBRATE_MOTORS *
+    case MEASURE_AND_CALIBRATE_MOTORS:
+     measureAndCalibrateMotors();
+     break;
+    
+    default:
+     ; //do nothing for now
+  }  
+}
+
+
 void setup()
 {
   //debug noInterrupts(); //no interrupts at this point
@@ -507,7 +574,21 @@ void setup()
   encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
   encoderTimer.attachInterrupt(ISR_timerEncoder);
   encoderTimer.start();
-  //debug interrupts(); // allorw interrupt starting here
+  //debug interrupts(); // allow interrupt starting here
+
+ // init of message structures
+ msgRingBuffer[0].createMsg(COLLISION_SENSOR_STATUS, "5", 1);
+ msgRingBuffer[1].createMsg(CURRENT_OP_MODE, String(SENSORS_DEVELOPEMENT), 1);
+
+ currentMsg=0;
+ Serial.println(msgRingBuffer[0].msg);
+ Serial.println(msgRingBuffer[0].topic);
+ Serial.println(msgRingBuffer[0].priority);
+  
+ Serial.println(msgRingBuffer[1].msg);
+ Serial.println(msgRingBuffer[1].topic);
+ Serial.println(msgRingBuffer[1].priority);
+
 }
 
 void loop()
@@ -515,61 +596,20 @@ void loop()
  //****************************************************************
  //***************** get new opMode value from command channel ****
  //****************************************************************
- // for now hardcode the opMode
+ // for now hard code the opMode
 
- opMode = TELEOP;
+ //opMode = TELEOP;
  //opMode = MEASURE_AND_CALIBRATE_MOTORS;
  //opMode = JUST_RUN;
+ //opMode = STANDBY
+ opMode = SENSORS_DEVELOPEMENT;
+ //opMode = NADDOCAM;
+ 
+ runOpMode(opMode);
 
-  switch (opMode) {
-    case JUST_RUN:
-     just_run();
-     break;
+/*
 
-    case TELEOP: // teleoperation by remote
-     motor_TELEOP_node_v1();
-     break;
-
-    //**********************************************
-    //***************** NADDOCAM *******************
-    case NADDOCAM:
-     break;
-
-    //************************************************
-    //***************** MEASURE_AND_CALIBRATE_MOTORS *
-    case MEASURE_AND_CALIBRATE_MOTORS:
-     Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
-     motorLeftSet(128, FORWARD);
-     motorRightSet(128, FORWARD);
-     delay(6000); // run for n sec
-     motorAllStop();
-     
-     // display results on Serial Monitor
-
-     Serial.print("encoderTimerLoopCount= ");
-     Serial.println(encoderTimerLoopCount, DEC);
-     Serial.println("---------------------------");
-     Serial.print("deltaCount_L= ");
-     Serial.println(deltaCount_L, DEC);
-     Serial.print("deltaCount_R= ");
-     Serial.println(deltaCount_R, DEC);
-
-     Serial.println("--------TOTALS------------\n");
-     Serial.print("S1_L_count= ");
-     Serial.println(S1_L_count, DEC);
-     Serial.print("S1_R_count= ");
-     Serial.println(S1_R_count, DEC);
-
-     Serial.println("End of motor measure program.");
-
-     while(true){
-      ; // we do this only once
-     }
-     break;
-    
-    default:
-     ; //do nothing for now
-  }
+*/
 }
 //endif for COMPILE
 #endif
