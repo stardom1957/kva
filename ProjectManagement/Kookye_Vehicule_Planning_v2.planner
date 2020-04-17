@@ -231,11 +231,43 @@
       </task>
     </task>
     <task id="82" name="Software" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="83" name="Display, controls and telemetry" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-      <task id="84" name="Off board telemetry display and control panel (see note for ideas)" note="Sun 24 Mar 2019, 12:08&#10;TFT display would be nice like Nextion.&#10;Watch videos from Andreas Spiess on this topic.&#10;&#10;TFT: can display and has touch control&#10;Needs editor on Windows&#10;One MicroSD card&#10;&#10;" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="85" name="On board displays and controls" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="83" name="Display, controls and telemetry" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="84" name="Research the subject (see evernote)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="85" name="Message passing protocol for telemetry" note="Mon 13 Apr 2020, 11:41&#10;class devel and functionnalities for message passing.&#10;&#10;for telemetry only&#10;" work="115200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="86" name="Software (class) developement" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="87" name="On board (transmiter)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+          <task id="88" name="Off board (receiver)" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+            <task id="89" name="Developement via Processing IDE on fmmpi1" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+            <task id="90" name="Implementation via hardware remote control (Arduino, Nextion HMI, etc.)?" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+          </task>
+        </task>
+        <task id="91" name="Hardware developement" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="92" name="On board displays and controls using Nextion HMI" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="93" name="Off board telemetry display and control panel (see note for ideas)" note="Sun 24 Mar 2019, 12:08&#10;TFT display would be nice like Nextion.&#10;Watch videos from Andreas Spiess on this topic.&#10;&#10;TFT: can display and has touch control&#10;Needs editor on Windows&#10;One MicroSD card&#10;&#10;" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
     </task>
-    <task id="86" name="Sensors" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="94" name="Sensors and peripherals" note="" work="115200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="95" name="Sensors" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="96" name="Motor (Hall) sensors trough logic level shifter" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="97" name="IR proximity sensor" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+          <task id="98" name="Hardware selection and testing (via Processing kvaIRproximityDetetionEvaluation)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        </task>
+        <task id="99" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+      <task id="100" name="Peripherals" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    </task>
+    <task id="101" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="102" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="103" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="104" name="Operation manual" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="105" name="General description of KVA vehicule" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="106" name="Power supply - inserting batteries - using Venom Low Voltage Monitors" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="107" name="Modes of operations - descriptions" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="108" name="Controls local and remote - telemetry" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="109" name="Annexe A - bloc diagram of operation" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="110" name="Annexe B - pin assigment table" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="111" name="Annexe C - spaces" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    </task>
   </tasks>
   <resource-groups/>
   <resources>
