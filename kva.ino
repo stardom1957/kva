@@ -14,12 +14,20 @@
  * Issue 2.12 - Integrating and testing motor sensors through logic level shifter (8 ch):
  *  2.12.2 : 
  *   - DueTime encoderTimer is enabled during setup, but does not run if PWM signal is routed to pin 2 (ENB_R)
- *     - see new definition for ENB_R
+ *     - see new definition for ENB_R OK
  *   - all code for measuring motors is removed and modified to simply report motor encoder counts
- *     every time the program passes trough.
- * Issue 2.10.6: teleoperating -  emergency maneuvers
- *  - slow in place rotation using PS2 controler l/r buttons
- *  - slow forward/revers using PS2 controler up/down buttons
+ *     every time the program passes trough. DONE
+ * Issue 2.10.6: teleoperating -  emergency maneuvers DONE
+ *  - slow in place rotation using PS2 controler l/r buttons DONE
+ *  - slow forward/revers using PS2 controler up/down buttons DONE
+ * 
+ * Issue 6.2.1 Software (class) developement
+ *  - mesage passing routines see kva.h
+ * 
+ * Issue 6.3: On board displays and controls using Nextion HMI
+ *  - Nextion library
+ *  - Nextion HMI page menu for setting opMode
+ *  - Nextion HMI page for STATUS
  */
 
 // ************** Compile directives
@@ -35,18 +43,28 @@
 //************************************************
 
 #ifdef COMPILE_MAIN
+#define SERIAL_DEBUG_PORT     0 // serial port for debuging
+#define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
+#define SERIAL_HMI            2 // serial port to Nextion HMI
+
+boolean opModeChangeRequested {false};
 #include <DueTimer.h>
 #include "kva.h"
 
 // robot vehicule modes of operation see vehiculeModes.txt
-byte opMode;                             //operation mode
-#define STANDBY 0                        //at rest but diagnostic and communication running
-#define SENSORS_DEVELOPEMENT 15          // just run
-#define JUST_RUN 30                      // just run
-#define MEASURE_AND_CALIBRATE_MOTORS 40  //used to test what ever needs testing
-#define TELEOP 10                        //Teleoperation with a joystick // TELEOP: Joystick operation
-#define NADDOCAM 20                      //NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode:
-/* NADDOCAM: Non Directed Autonomous Driving with Obstacle Collision Avoidance mode: 
+byte currentOpMode; // operation mode
+byte selectedOpMode;                     // user selected opmode
+String currentOpModeName;                // text value of current opMode name 
+#define STANDBY 0                        // at rest but diagnostic and communication running
+#define SENSORS_DEVELOPEMENT 15          // as it says
+#define JUST_DO_THIS 30                  // executes a series of preset commands
+#define FREE_RUN  35                     // runs in obstacle collision avoidance on
+#define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
+#define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
+
+#include "hmi.h" // for HMI display and control
+
+/* FREE_RUN: Non Directed Autonomous Driving with Obstacle Collision Avoidance: 
  *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
 */
 
@@ -61,9 +79,9 @@ byte opMode;                             //operation mode
 //*******************************************
 
 // left motor on L298N channel A
-#define ENA_L 4 // pwm pin
-#define IN1   29
-#define IN2   27
+#define ENA_L_PIN 4 // pwm pin
+#define IN1_PIN   29
+#define IN2_PIN   27
 
 // right motor on L298N channel B
 //#define ENB_R 2 // pwm pin
@@ -107,7 +125,10 @@ int  PS2_config_result{254}; // controler never set = 254
 byte PS2_type{0};
 //byte PS2_vibrate_level{0}; // no vibration
 
-
+//*************************************************************
+//definitions for displays, indicators, etc.
+//*************************************************************
+#define MESSAGE_BUFFER_OVERFLOW_LED_PIN 53
 
 //**************** FUNCTIONS DEFINITIONS
 void ISR_timerEncoder(void) {
@@ -187,18 +208,18 @@ void motorLeftSet(int speed, byte direction) {
   case FORWARD:
    // moteur droit avance
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1, LOW);
-     digitalWrite(IN2, HIGH);
-     analogWrite(ENA_L, speed);
+     digitalWrite(IN1_PIN, LOW);
+     digitalWrite(IN2_PIN, HIGH);
+     analogWrite(ENA_L_PIN, speed);
    }
    break;
 
   case REVERSE:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1, HIGH);
-     digitalWrite(IN2, LOW);
-     analogWrite(ENA_L, speed);
+     digitalWrite(IN1_PIN, HIGH);
+     digitalWrite(IN2_PIN, LOW);
+     analogWrite(ENA_L_PIN, speed);
    }
    break;
 
@@ -212,7 +233,7 @@ void motorRightStop(void) {
 }
 
 void motorLeftStop(void) {
-    digitalWrite(ENA_L, LOW);
+    digitalWrite(ENA_L_PIN, LOW);
 }
 
 void motorAllStop(void)
@@ -269,6 +290,7 @@ void motor_TELEOP_node_v1(void) {
   int ps2RY; //we are using the right hand joystick
   int ps2RX;  
   const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
+  updateDisplayAndIndicators();
   
   if(PS2_config_result == 254) { //try to setup controler up to 10 times
    // debug Serial.println("Setting controler...");
@@ -444,7 +466,8 @@ void motor_TELEOP_node_v1(void) {
   delay(50);
 } // fin motor_TELEOP_node_v1
 
-void just_run() {
+void just_do_this() {
+  updateDisplayAndIndicators();
   Serial.println("Both motors FORWARD for 4s");
   motorLeftSet(200, FORWARD);
   motorRightSet(200, FORWARD);
@@ -472,13 +495,15 @@ void just_run() {
   Serial.println("All stop for 2s");
   motorAllStop();
   delay(2000);
-  Serial.println("_________");
+  Serial.println("___ wait 5 s______");
 
   //while(true); //we're only doing this once
+  delay(5000);
 }
 
-
+//debug note SHOULD BE REMOVED (BY COMMENTING) IN PRODUCTION
 void measureAndCalibrateMotors(void) {
+  updateDisplayAndIndicators();
   Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
   motorLeftSet(128, FORWARD);
   motorRightSet(128, FORWARD);
@@ -509,51 +534,60 @@ void measureAndCalibrateMotors(void) {
 
 // runs the selected opMode
 void runOpMode(byte om) {
-  switch (opMode) {
+  switch (om) {
+    case STANDBY:
+     currentOpModeName = "STANDBY";
+     standby();
+     break;
+
     case SENSORS_DEVELOPEMENT:
+     currentOpModeName = "SENS. DEVEL.";
      sensorDeveloppement();
      break;
 
-    case JUST_RUN:
-     just_run();
+    case JUST_DO_THIS:
+     currentOpModeName = "JUST_DO_THIS";
+     just_do_this();
      break;
 
     case TELEOP: // teleoperation by remote
+     currentOpModeName = "TELEOP";
      motor_TELEOP_node_v1();
      break;
 
     //**********************************************
-    //***************** NADDOCAM *******************
-    case NADDOCAM:
+    //***************** FREE_RUN *******************
+    case FREE_RUN:
+     currentOpModeName = "FREE RUN";
+     free_run();
      break;
 
     //************************************************
     //***************** MEASURE_AND_CALIBRATE_MOTORS *
     case MEASURE_AND_CALIBRATE_MOTORS:
+     currentOpModeName = "MESURE MOT.";
      measureAndCalibrateMotors();
      break;
     
     default:
-     ; //do nothing for now
+     standby(); //safest thing to do
   }  
 }
 
+void free_run(void) {
+ updateDisplayAndIndicators();
+}
 
-void setup()
-{
-  //debug noInterrupts(); //no interrupts at this point
-
-  //debug we might use this later
+void setGPIOs(void) {
+ //debug we might use this later
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  
-  Serial.begin(115200);
 
   // set all the motor control pins to outputs
-  pinMode(ENA_L, OUTPUT);
+  pinMode(ENA_L_PIN, OUTPUT);
   pinMode(ENB_R, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
+  pinMode(IN1_PIN, OUTPUT);
+  pinMode(IN2_PIN, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
 
@@ -563,10 +597,72 @@ void setup()
   pinMode(S1motorEncoder_R_PIN,INPUT);
   pinMode(S2motorEncoder_R_PIN,INPUT);
 
-  motorAllStop();
+ // indicators, controls and displays
+  pinMode(MESSAGE_BUFFER_OVERFLOW_LED_PIN, OUTPUT);
+  digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);
 
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
+}
 
+void standby(void) {
+  updateDisplayAndIndicators(); // update display and indicators
+  delay(50);
+  
+}
+
+// put part of a string into char char_buffer
+void strToChar(String s) {
+  memset(char_buffer, 0, sizeof(char_buffer));
+  for (byte i=0; i < s.length(); i++) {
+    char_buffer[i] = s.charAt(i);
+  }
+}
+
+void updateDisplayAndIndicators(void) {
+ if ( (displayTimer + displayInterval) < millis()) {
+   if (currentTopic == maxNbrTopics) {
+     digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, HIGH);
+   } else {digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);}
+
+   // display topicsOverflow on HMI **************
+   //debug
+   topicsOverflow = random(100); //debug
+   
+   //page0.show(); // show status page
+   if (topicsOverflow > 70) {
+    jbuffstat.Set_font_color_pco(63488); // red  
+   }
+   else {
+    jbuffstat.Set_font_color_pco(2016); // green
+   }
+   
+   if (topicsOverflow > 100) { topicsOverflow = 100; }
+   jbuffstat.setValue(topicsOverflow);
+ 
+   // display current opMode on HMI **************
+   memset(char_buffer, 0, sizeof(char_buffer));
+   Serial.print("currentOpModeName= ");
+   Serial.println(currentOpModeName);
+   strToChar(currentOpModeName); // mode name converted to chr in char_buffer
+   topmode.setText(char_buffer);
+   displayTimer = millis();
+ }
+}
+
+void setup()
+{
+  //debug noInterrupts(); //no interrupts at this point
+  
+  Serial.begin(9600);    // for debuging
+  delay(500);
+  Serial1.begin(115200); // for XBee for telemetry
+  delay(500);
+  Serial2.begin(38400); // for HMI communication
+  delay(500);
+
+  setGPIOs();
+  motorAllStop();
+  
   attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
   attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
 
@@ -574,21 +670,104 @@ void setup()
   encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
   encoderTimer.attachInterrupt(ISR_timerEncoder);
   encoderTimer.start();
+
+/*
   //debug interrupts(); // allow interrupt starting here
+  // debug
+  // create somme messages
+  //createTopic(byte tID, String dat, char typ, byte prio)
+  //1
+  currentTopic = storeTopic(CURRENT_OP_MODE, String(SENSORS_DEVELOPEMENT), 'b', 2);
+  //2
+  delay(3500);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "5", 'b', 1);
+  //3
+  delay(500);
+  currentTopic = storeTopic(RMOTOR_SPEED, String(7824), 'u', 4);
+  //4
+  delay(50);
+  currentTopic = storeTopic(LMOTOR_SPEED, String(5824), 'u', 4);
+  //5
+  delay(15);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "4", 'b', 1);
+  //6
+  delay(102);
+  currentTopic = storeTopic(RMOTOR_SPEED, String(3824), 'u', 4);
+  //7
+  delay(152);
+  currentTopic = storeTopic(LMOTOR_SPEED, String(3823), 'u', 4);
+  //8 
+  delay(254);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "0", 'b', 1);
+  //9
+  delay(82);
+  currentTopic = storeTopic(LMOTOR_SPEED, String(11823), 'u', 4);
+  //10
+  delay(204);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "0", 'b', 1);
+ //11 overflow 1
+  delay(24);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "1", 'b', 1);
+  //12 overflow 2
+  delay(43);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "7", 'b', 1);
+  //13 overflow 3
+  delay(82);
+  currentTopic = storeTopic(LMOTOR_SPEED, String(11823), 'u', 4);
+  //14 overflow 4
+  delay(204);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "0", 'b', 1);
+  //15 overflow 5
+  delay(24);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "1", 'b', 1);
+  //16 overflow 6
+  delay(43);
+  currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "7", 'b', 1);
+*/
+ if (currentTopic == maxNbrTopics) {
+  Serial.println("maxNbrTopics reached! Lost " + String(topicsOverflow) + " topics.");
+  digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, HIGH);
+ } else {digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);}
 
- // init of message structures
- msgRingBuffer[0].createMsg(COLLISION_SENSOR_STATUS, "5", 1);
- msgRingBuffer[1].createMsg(CURRENT_OP_MODE, String(SENSORS_DEVELOPEMENT), 1);
+/*
+ delay(5000);
+ //send telemetry and clear buffer
+ sendTelemetry(SERIAL_TELEMETRY_PORT);
 
- currentMsg=0;
- Serial.println(msgRingBuffer[0].msg);
- Serial.println(msgRingBuffer[0].topic);
- Serial.println(msgRingBuffer[0].priority);
-  
- Serial.println(msgRingBuffer[1].msg);
- Serial.println(msgRingBuffer[1].topic);
- Serial.println(msgRingBuffer[1].priority);
+ // then create more topics and print them
+ 
+ Serial.println("\nTwo more\n");
+ delay(1000);
+ currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "0", 'b', 1);
+ delay(5);
+ currentTopic = storeTopic(COLLISION_SENSOR_STATUS, "7", 'b', 1);
+ //send telemetry and clear buffer
+ sendTelemetry(SERIAL_TELEMETRY_PORT);
 
+ Serial.println("\nThere should be nothing after this\n");
+ delay(1000);
+*/
+/*
+ Serial.println(topicsRingBuffer[currentTopic].topicID);
+ Serial.println(topicsRingBuffer[currentTopic].stc);
+ Serial.println(topicsRingBuffer[currentTopic].dataType);
+ Serial.println(topicsRingBuffer[currentTopic].priority);
+ Serial.println();
+*/  
+
+ nexInit();
+ delay(500);
+ /* attach all pop event callback functions to components. */
+ //*****attach
+ bstat.attachPop(bstatPopCallback, &bstat);
+ btele.attachPop(btelePopCallback, &btele);
+ bsby.attachPop(bsbyPopCallback, &bsby);
+ bopmode.attachPop(bopmodePopCallback, &bopmode);
+ bfrun.attachPop(bfrunPopCallback, &bfrun);
+ currentOpMode = STANDBY;
+ page1.show();
+
+ Serial.println("Setup finished\n");
 }
 
 void loop()
@@ -598,18 +777,23 @@ void loop()
  //****************************************************************
  // for now hard code the opMode
 
- //opMode = TELEOP;
- //opMode = MEASURE_AND_CALIBRATE_MOTORS;
- //opMode = JUST_RUN;
- //opMode = STANDBY
- opMode = SENSORS_DEVELOPEMENT;
- //opMode = NADDOCAM;
- 
- runOpMode(opMode);
+ //currentOpMode = TELEOP;
+ //currentOpMode = MEASURE_AND_CALIBRATE_MOTORS;
+ //currentOpMode = JUST_DO_THIS;
+ //currentOpMode = STANDBY;
+ //currentOpMode = SENSORS_DEVELOPEMENT;
+ //currentOpMode = NADDOCAM;
 
-/*
-
-*/
+ nexLoop(nex_listen_list);
+ currentOpMode = selectedOpMode;
+ runOpMode(currentOpMode);
+ /*
+  * if (opModeChangeRequested) {
+  manageOpModeTimer();
+ } else {
+   runOpMode(currentOpMode);
+ }
+ */
 }
 //endif for COMPILE
 #endif

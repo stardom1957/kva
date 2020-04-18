@@ -10,9 +10,9 @@
   
 // Motor A
 
-int ENA_L = 9;
-int IN1 = 8;
-int IN2 = 7;
+int ENA_L_PIN = 9;
+int IN1_PIN = 8;
+int IN2_PIN = 7;
 
 // Motor B
 
@@ -41,10 +41,10 @@ void setup()
 
   // Set all the motor control pins to outputs
 
-  pinMode(ENA_L, OUTPUT);
+  pinMode(ENA_L_PIN, OUTPUT);
   pinMode(ENB_R, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
+  pinMode(IN1_PIN, OUTPUT);
+  pinMode(IN2_PIN, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
    
@@ -52,9 +52,9 @@ void setup()
   
   // Motor A left
   
-  digitalWrite(ENA_L, LOW);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
+  digitalWrite(ENA_L_PIN, LOW);
+  digitalWrite(IN1_PIN, HIGH);
+  digitalWrite(IN2_PIN, LOW);
   
   // Motor B right
   
@@ -81,8 +81,8 @@ void loop() {
 
     // Set Motor A backward
 
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
+    digitalWrite(IN1_PIN, LOW);
+    digitalWrite(IN2_PIN, HIGH);
 
     // Set Motor B backward
 
@@ -106,8 +106,8 @@ void loop() {
 
     // Set Motor A forward
 
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
+    digitalWrite(IN1_PIN, HIGH);
+    digitalWrite(IN2_PIN, LOW);
 
     // Set Motor B forward
 
@@ -183,7 +183,7 @@ void loop() {
 
   // Set the motor speeds
 
-  analogWrite(ENA_L, motorSpeed_L);
+  analogWrite(ENA_L_PIN, motorSpeed_L);
   analogWrite(ENB_R, motorSpeed_R);
 
 }

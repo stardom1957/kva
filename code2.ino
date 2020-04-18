@@ -157,17 +157,17 @@ void motorRightReverse(int speed) {
 
 void motorLeftForward(int speed) {
   if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    analogWrite(ENA_L, speed);
+    digitalWrite(IN1_PIN, LOW);
+    digitalWrite(IN2_PIN, HIGH);
+    analogWrite(ENA_L_PIN, speed);
   }
 }
 
 void motorLeftReverse(int speed) {
   if (speed >= 100 && speed <= 255) {
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, LOW);
-    analogWrite(ENA_L, speed);
+    digitalWrite(IN1_PIN, HIGH);
+    digitalWrite(IN2_PIN, LOW);
+    analogWrite(ENA_L_PIN, speed);
   }
 }
 

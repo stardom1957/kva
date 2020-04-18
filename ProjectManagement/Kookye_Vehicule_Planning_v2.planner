@@ -219,7 +219,7 @@
         <task id="73" name="Drok 5V - 12 to 24V to 5V fixed" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
       </task>
       <task id="74" name="Test and acceptance of Venom LVM (Low Voltage Monitors) and extension balance cables" note="" work="57600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-        <task id="75" name="Battery 4S" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="75" name="Battery 4S " note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
         <task id="76" name="Battery 3S" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
       </task>
       <task id="77" name="Main power cable management" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
