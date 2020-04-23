@@ -26,6 +26,7 @@ void setGPIOs();
 void updateDisplayAndIndicators();
 void manageOpModeTimer();
 void strToChar();
+void kva_rtc_init();
 
 //class for message passing
 /*
@@ -55,6 +56,53 @@ void strToChar();
   C. TOPIC PROCESSING
      Each topic will have it's own function for processing.
 */
+
+// General status variable
+
+boolean rtcFound{false};
+int motorSpeed_L = 0; // Motor Speed Values - Start at zero
+int motorSpeed_R = 0;
+#define MOTOR_LOWER_PWM_LIMIT 25 // to avoid buzzing
+int  PS2_config_result{254}; // controler never set = 254
+byte PS2_type{0};
+
+
+// robot vehicule modes of operation see vehiculeModes.txt
+byte currentOpMode; // operation mode
+byte selectedOpMode;                     // user selected opmode
+String currentOpModeName;                // text value of current opMode name 
+#define STANDBY 0                        // at rest but diagnostic and communication running
+#define SENSORS_DEVELOPEMENT 15          // as it says
+#define JUST_DO_THIS 30                  // executes a series of preset commands
+#define FREE_RUN  35                     // runs in obstacle collision avoidance on
+#define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
+#define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
+
+
+/* FREE_RUN: Non Directed Autonomous Driving with Obstacle Collision Avoidance: 
+ *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
+*/
+
+//************************************************
+// defines and definitions for MEASURE_AND_CALIBRATE_MOTORS opMode only
+//************************************************
+
+#define ENCODER_MEASURE_INTERVAL 100000 // sampling interval = timer interval; set in microseconds (10e-6s)
+
+//*******************************************
+//************* motor control definitions
+//*******************************************
+
+// left motor on L298N channel A
+#define ENA_L_PIN 4 // pwm pin
+#define IN1_PIN   29
+#define IN2_PIN   27
+
+// right motor on L298N channel B
+//#define ENB_R 2 // pwm pin
+#define ENB_R 3 // pwm pin
+#define IN3   25
+#define IN4   23
 
 // topics
 #define MOTORS_STATUS 0 //bit mapped to byte value
