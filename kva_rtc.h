@@ -2,8 +2,13 @@
 #define _kva_rtc_h
 #ifdef RTC_COMPILE
 
+<<<<<<< HEAD
 #define ARDUINO_SAM_DUE // for DUE RTC will run on SCL1 and SDA1
 #include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and DUE Wire lib
+=======
+#include <Wire.h>
+#include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and Wire lib
+>>>>>>> c04aeab22ecbb02bb5ccc3397e782d76425e47b8
 
 // RTC init global DS3231
 RTC_DS3231 rtc;
