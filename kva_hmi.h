@@ -10,24 +10,28 @@
 #include "Nextion.h"
 // pages create callback only if needed
 
+//define some constants for HMI
+#define GREEN 1024
+#define GREY 50712
+
 //                                       (page, ID, objname)
 NexText topmode  =                NexText(0, 4, "topmode");    // displays current opMode
 NexProgressBar jbuffstat = NexProgressBar(0, 5, "jbuffstat");  // displays progress bar for message buffer status
 
 // main menu buttons components repeat on each page
 // note: all page change are handled by HMI, so no callback function required!
-NexDSButton bstat1 =              NexDSButton(1, 7, "bstat1");       // page 1 button to status 0 CALLBACK REQUIRED
+NexDSButton bstat1 =              NexDSButton(1, 4, "bstat1");       // page 1 button to status 0 CALLBACK REQUIRED
 NexDSButton bstat2 =              NexDSButton(2, 1, "bstat2");       // page 2 button to status page 0 CALLBACK REQUIRED
 NexDSButton bop0   =              NexDSButton(0, 7, "bop0");       // page 0 button to opMode selection page 1 CALLBACK REQUIRED
 NexDSButton bop2   =              NexDSButton(2, 2, "bop2");       // page 2 button to opMode selection page 1 CALLBACK REQUIRED
 NexDSButton brtc0  =              NexDSButton(0, 8, "brtc0");       // page 0 button to rtc set page 2 CALLBACK REQUIRED
-NexDSButton brtc1  =              NexDSButton(1, 9, "brtc1");       // page 1 button to rtc set page 2 CALLBACK REQUIRED
+NexDSButton brtc1  =              NexDSButton(1, 6, "brtc1");       // page 1 button to rtc set page 2 CALLBACK REQUIRED
 
 // page 1 set opMode components
-NexDSButton bsby      = NexDSButton(1, 2, "bsby");        // STANDBY mode select button CALLBACK REQUIRED
-NexDSButton btele     = NexDSButton(1, 4, "btele");       // TELEOPY mode select button CALLBACK REQUIRED
-NexDSButton bfrun     = NexDSButton(1, 3, "bfrun");       // FREE_RUN mode select button CALLBACK REQUIRED
-NexNumber ngotimer      = NexNumber(1, 6, "ngotimer");    // time count for timer to start selected opMode
+NexButton bsby      = NexButton(1, 7, "bsby");        // STANDBY mode select button CALLBACK REQUIRED
+NexButton bfrun     = NexButton(1, 8, "bfrun");       // FREE_RUN mode select button CALLBACK REQUIRED
+NexButton btele     = NexButton(1, 9, "btele");       // TELEOPY mode select button CALLBACK REQUIRED
+NexNumber ngotimer      = NexNumber(1, 3, "ngotimer");    // time count for timer to start selected opMode
 
 // page 2 set RTC date and time components
 NexNumber nyear =      NexNumber(2, 4, "nyear");    // number field for year >= 2020
@@ -86,15 +90,110 @@ void bstat2PopCallback(void *ptr) {
   currentHMIpage = 0;
 }
 
+// this will ajust the color of mode select buttons to green
+// to match currentOpMode
+void setOpmodeButtonColor(void) {
+  //set the color of button representing current opMode to green
+  switch(currentOpMode) {
+    //**********************************************
+    //***************** STANDBY *******************
+    case STANDBY:
+     bsby.Set_background_color_bco(GREEN);
+     break;
+
+    case SENSORS_DEVELOPEMENT:
+     break;
+
+    case JUST_DO_THIS:
+     break;
+
+    //**********************************************
+    //***************** TELEOP *******************
+    case TELEOP: // teleoperation by remote
+     btele.Set_background_color_bco(GREEN);
+     break;
+
+    //**********************************************
+    //***************** FREE_RUN *******************
+    case FREE_RUN:
+     bfrun.Set_background_color_bco(GREEN);
+     break;
+
+    //************************************************
+    //******** MEASURE_AND_CALIBRATE_MOTORS **********
+    case MEASURE_AND_CALIBRATE_MOTORS:
+     break;
+    
+    default:
+     ;
+  }
+}
+
+/*  Frome HMI page that sets the RTC
+ * this function will read the combined states of
+ * the following buttons and return a byte value
+ * according to the following table
+ * 
+ * note: only one button in each row or collumn can be set
+ * 
+ *     9 year    10 month  12 day <   (btdate  8)
+ *    17 hour    18 min    20 sec <   (bttime 16)
+ *     ^          ^         ^        
+ *   (btyh 1)  (btmm 2)  (btds 4)
+ *   
+ *
+*/
+
+byte getRTCbtnValue(void) {
+  byte bv{0};
+  uint32_t val{0};
+  int del{25}; // delay to get good reading from HMI
+  // check row (btyh 1)  (btmm 2)  (btds 4)
+  // one only is set to 1 check row
+  btyh.getValue(&val);
+  if ( val == 1) {
+    bv=1;
+  }
+  delay(del);
+  btmm.getValue(&val);
+  if ( val == 1) {
+    bv=2;
+  }
+  delay(del);
+  btds.getValue(&val);
+  if ( val == 1) {
+    bv=4;
+  }
+
+  // then check collumn
+  // (btdate 8)
+  // (bttime 16)
+  // one only is set to 1
+  delay(del);
+  btdate.getValue(&val);
+  if ( val == 1) {
+    bv+=8;
+  }
+  delay(del);
+  bttime.getValue(&val);
+  if ( val == 1) {
+    bv+=16;
+  }
+  
+  return bv;
+}
+
 // change to page 1
 void bop0PopCallback(void *ptr) {
   dbSerialPrintln("bop0PopCallback");
   currentHMIpage = 1;
+  setOpmodeButtonColor(); // set cirrectly selected opmode btn color to green
 }
 
 void bop2PopCallback(void *ptr) {
   dbSerialPrintln("bop2PopCallback");
   currentHMIpage = 1;
+  setOpmodeButtonColor(); // set cirrectly selected opmode btn color to green
 }
 
 // change to page 2
@@ -111,9 +210,90 @@ void brtc1PopCallback(void *ptr) {
 // add +5 to currently RTC selected field on page 2
 void bplusPopCallback(void *ptr) {
   dbSerialPrintln("bplusPopCallback");
+  int del{10}; // delay to get good I/O fom HMI
   // TODO:
+  // get current RTC and set fields to them or else set them to compile time
+  
   //  find currently selected field
+  byte field = getRTCbtnValue();
+  
+  uint32_t val{0};
   //  ADD 5 to it, check and ajust to limits
+
+  switch(field) {
+    case 17: // hour
+     // get current value
+     nhour.getValue(&val);
+     delay(10);
+     nhour.getValue(&val);
+     val+=5;
+
+     if (val >= 24) val = val % 24;
+     delay(del);
+     nhour.setValue(val);
+    break;
+
+    case 18: // minutes
+     // get current value
+     nmin.getValue(&val);
+     delay(10);
+     nmin.getValue(&val);
+     val+=5;
+
+     if (val >= 60) val = val % 60;
+     delay(del);
+     nmin.setValue(val);
+    break;
+
+    case 20: // seconds
+     // get current value
+     nsec.getValue(&val);
+     delay(10);
+     nsec.getValue(&val);
+     val+=5;
+
+     if (val >= 60) val = val % 60;
+     delay(del);
+     nsec.setValue(val);
+    break;
+
+    case 9: // year
+     // get current value
+     nyear.getValue(&val);
+     delay(10);
+     nyear.getValue(&val);
+     val+=5;
+
+     if (val < 2020) val = 2020;
+     delay(del);
+     nyear.setValue(val);
+    break;
+
+    case 10: // month
+     // get current value
+     nmonth.getValue(&val);
+     delay(10);
+     nmonth.getValue(&val);
+     val+=5;
+
+     if (val >= 12) val = val % 12;
+     delay(del);
+     nmonth.setValue(val);
+    break;
+
+    case 12: // day
+     // get current value
+     nday.getValue(&val);
+     delay(10);
+     nday.getValue(&val);
+     val+=5;
+
+     if (val >= 31) val = val % 31;
+     delay(del);
+     nday.setValue(val);
+    break;
+
+ }
 }
 
 // subtract 1 from currently RTC selected field on page 2
@@ -122,6 +302,86 @@ void bminusPopCallback(void *ptr) {
   // TODO:
   //  find currently selected field
   //  SUBSTRACT 1 from it, check and ajust to limits
+  int del{10}; // delay to get good I/O fom HMI
+  // TODO:
+  // get current RTC and set fields to them or else set them to compile time
+  
+  //  find currently selected field
+  byte field = getRTCbtnValue();
+  uint32_t val{0};
+
+  //  SUBSTRACT 1 from it, check and ajust to limits
+  switch(field) {
+    case 17: // hour
+     // get current value
+     nhour.getValue(&val);
+     delay(10);
+     nhour.getValue(&val);
+     if (val !=0) --val;
+
+     delay(del);
+     nhour.setValue(val);
+    break;
+
+    case 18: // minutes
+     // get current value
+     nmin.getValue(&val);
+     delay(10);
+     nmin.getValue(&val);
+
+     if (val !=0) --val;
+     delay(del);
+     nmin.setValue(val);
+    break;
+
+    case 20: // seconds
+     // get current value
+     nsec.getValue(&val);
+     delay(10);
+     nsec.getValue(&val);
+
+     if (val !=0) --val;
+     delay(del);
+     nsec.setValue(val);
+    break;
+
+    case 9: // year
+     // get current value
+     nyear.getValue(&val);
+     delay(10);
+     nyear.getValue(&val);
+     if (val !=0) --val;
+     
+     if (val < 2020) val = 2020;
+     delay(del);
+     nyear.setValue(val);
+    break;
+
+    case 10: // month
+     // get current value
+     nmonth.getValue(&val);
+     delay(10);
+     nmonth.getValue(&val);
+
+     if (val == 0) val = 1;
+     if (val > 1 ) --val;
+     delay(del);
+     nmonth.setValue(val);
+    break;
+
+    case 12: // day
+     // get current value
+     nday.getValue(&val);
+     delay(10);
+     nday.getValue(&val);
+
+     if (val == 0) val = 1;
+     if (val > 1) --val;
+     delay(del);
+     nday.setValue(val);
+    break;
+
+ }
 }
 
 void bsetRTCPopCallback(void *ptr) {

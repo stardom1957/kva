@@ -27,6 +27,8 @@ void updateDisplayAndIndicators();
 void manageOpModeTimer();
 void strToChar();
 void kva_rtc_init();
+void setOpmodeButtonColor(void);
+String chaineDateHeure(bool);
 
 //class for message passing
 /*
@@ -59,13 +61,14 @@ void kva_rtc_init();
 
 // General status variable
 
-boolean rtcFound{false};
+boolean rtcFound{false};     // RTC found or not
+boolean rtcNotInitialized{false}; // found RTC, but not initialized
 int motorSpeed_L = 0; // Motor Speed Values - Start at zero
 int motorSpeed_R = 0;
 #define MOTOR_LOWER_PWM_LIMIT 25 // to avoid buzzing
 int  PS2_config_result{254}; // controler never set = 254
 byte PS2_type{0};
-
+// for the compile date and time for RTC set
 
 // robot vehicule modes of operation see vehiculeModes.txt
 byte currentOpMode; // operation mode

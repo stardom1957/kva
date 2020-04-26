@@ -1,35 +1,5 @@
 /*
- * 
- * KVA V1: first integration of Ps2 controler to replace joystick in TELEOP mode. In this version,
- *  - function motor_TELEOP_node_v1(): 
- *    - will handle an on the spot rotation by setting one motor to full speed and the opposite one to 0,
- *      wich meens that full X left or full X right stick value while Y stick is in at rest will produce no movement.
- *
- * KVA_V2: continuing integration. Changes for pin assignment for motorization.
- * 
- * 2019-06-23: projet created in my GitHub account. Pushed from KVA_V2 into ...Kookye_vehicule/kva.
- * History: 
- * ... will be maintained here and,
- * ... using issues, etc., on GitHub when mentionned
- * Issue 2.12 - Integrating and testing motor sensors through logic level shifter (8 ch):
- *  2.12.2 : 
- *   - DueTime encoderTimer is enabled during setup, but does not run if PWM signal is routed to pin 2 (ENB_R)
- *     - see new definition for ENB_R OK
- *   - all code for measuring motors is removed and modified to simply report motor encoder counts
- *     every time the program passes trough. DONE
- * Issue 2.10.6: teleoperating -  emergency maneuvers DONE
- *  - slow in place rotation using PS2 controler l/r buttons DONE
- *  - slow forward/revers using PS2 controler up/down buttons DONE
- * 
- * Issue 6.2.1 Software (class) developement
- *  - mesage passing routines see kva.h
- * 
- * Issue 6.3: On board displays and controls using Nextion HMI
- *  - Nextion library
- *  - Nextion HMI page menu for setting opMode
- *  - Nextion HMI page for STATUS
- *  
- * Issue 7.2.1 RTC
+History, see kva_history.h tab
  */
 
 // ************** Compile directives
@@ -41,6 +11,7 @@
 //#define DUE_TIMER_TEST1 // developpement test only, see DueTimer1 tab
 //#define COMPILE_PS2EXAMPLE // developpement test only
 //#define JUMPERS_AS_INPUT // developpement only, setting opMode uing jumpers
+//#define RTC_COMPILE
 
 //************************************************
 
@@ -649,6 +620,16 @@ void setup()
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
 
+  #ifdef RTC_COMPILE
+  kva_rtc_init(); // starts RTC
+  Serial.print("RTCfound= ");
+  Serial.println(rtcFound);
+//  Serial.println(chaineDateHeure(true));
+  #endif
+
+  Serial.println( "Compiled: " __DATE__ ", " __TIME__ ", " __VERSION__);
+
+
   setGPIOs();
   motorAllStop();
   
@@ -697,16 +678,18 @@ void loop()
  //currentOpMode = SENSORS_DEVELOPEMENT;
  //currentOpMode = NADDOCAM;
 
+ // debug for devellopement. this delay will have to be ajusted according to the upmode
+ delay(75);
  nexLoop(nex_listen_list);
- currentOpMode = selectedOpMode;
- runOpMode(currentOpMode);
  /*
-  * if (opModeChangeRequested) {
+  if (opModeChangeRequested) {
   manageOpModeTimer();
  } else {
    runOpMode(currentOpMode);
  }
  */
+ currentOpMode = selectedOpMode;
+ runOpMode(currentOpMode);
 }
 //endif for COMPILE
 #endif
