@@ -1,6 +1,7 @@
 #ifndef _kva_history_h
 #define _kva_history_h
 /* 
+ * see Kookye_Vehicule_Planning_v2.planner to follow develpement and issues
  * 
  * KVA V1: first integration of Ps2 controler to replace joystick in TELEOP mode. In this version,
  *  - function motor_TELEOP_node_v1(): 
@@ -23,7 +24,8 @@
  *  - #DONE slow in place rotation using PS2 controler l/r buttons
  *  - #DONE slow forward/revers using PS2 controler up/down buttons
  * 
- * Issue 6.3: On board displays and controls using Nextion HMI
+ * Issue 6.3: On board displays and controls using Nextion HMI:
+ *  - on kva_menu3.hmi.
  *  - #DONE Nextion library
  *  - #DONE  Nextion HMI page menu for setting opMode
  *  - #DONE  Nextion HMI page for STATUS
@@ -35,12 +37,26 @@
  *  -- #DONE merge hmiv3 branch
  *  -- #DONE delete hmiv3
  *  
+ *  on branch issue7_2_1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+ *  
  * Issue 7.2.1 RTC:
- *  - #TODO on branch issue7_2_1:
- *  -- #TODO set RTC following ds3231Due_test.ino, ZS-042 connected to SDA1 and SCL1
+ *  - on
+ *  -- #DONE init RTC module according DS3231Due_test.ino with ZS-042 connected to SDA1 and SCL1
+ *  -- #DONE set RTC number fields page 2 according to RTC date and time
+ *  -- #DONE RTC set from RTC SETUP page 2
+ *  -- #DONE RTC set page 2 added a +1 btn
+ *  --- #TODO test the above very thouroully <#####################################
  * 
+ * Issue 6.3: On board displays and controls using Nextion HMI:
+ *  - #TODO SEEMS A BUG: sometimes system seems to reset when going to RTc page 2 from page 1
+ *  - #TODO why is HMI select automaticaly page 0 when reset even if HMi is runing?
+ *  - #DONE opmode change implement mechanics using btn color and status variable
+ *  - #TODO implement general diagnotics for sensors and peripheral and various status report using updateDisplayAndIndicators() for HMi and LEDs:
+ *  -- #TODO changes from FREE_RUN to other modes to consider (because one  master switch for motors power and sensors and peripherals (5 vdc) is used!?
+ *  - #TODO will probably change page 0 to add dt values and other pages if needed
+ *  
  * Issue 6.2.1 Software (class) developement:
- *  - #TODO message passing routines see kva.h
+ *  - #TODO message passing routines see telemetry.h
  * 
 */
 #endif

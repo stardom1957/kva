@@ -11,7 +11,7 @@ History, see kva_history.h tab
 //#define DUE_TIMER_TEST1 // developpement test only, see DueTimer1 tab
 //#define COMPILE_PS2EXAMPLE // developpement test only
 //#define JUMPERS_AS_INPUT // developpement only, setting opMode uing jumpers
-//#define RTC_COMPILE
+#define RTC_COMPILE
 
 //************************************************
 
@@ -19,54 +19,70 @@ History, see kva_history.h tab
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
+#define TELEMETRY               // compile telemetry code
 
-boolean opModeChangeRequested {false};
 #include <DueTimer.h>
+#include <PS2X_lib.h>  //revised library from KurtE from Github
 #include "kva.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
-#include <PS2X_lib.h>  //revised library from KurtE from Github
+#ifdef TELEMETRY
+#include "telemetry.h"
+#endif
+
+void updateDisplayAndIndicators(void) {
+ if ((millis() - displayTimer) > displayInterval) { // display interval
+     //#TODO set SYSTEM_READY_LED according to system status
+     digitalWrite(SYSTEM_READY_LED, HIGH);
+
+    /* #TODO what to do with these
+     rtcNotInitialized
+     rtcFound
+    */
+   
+   // update message overflow LED on vehicule
+   #ifdef TELEMETRY
+   if (currentTopic == maxNbrTopics) {
+     digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, HIGH);
+   } else {digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);}
+   #endif
+   
+   switch (currentHMIpage) {
+    case 0:
+      // display topicsOverflow on page 0 on HMI **************
+      //debug
+      #ifdef TELEMETRY
+      topicsOverflow = random(100); //debug
+      if (topicsOverflow > 70) {
+       jbuffstat.Set_font_color_pco(63488); // red  
+      }
+      else {
+        jbuffstat.Set_font_color_pco(2016); // green
+      }
+     
+      if (topicsOverflow > 100) { topicsOverflow = 100; }
+      jbuffstat.setValue(topicsOverflow);
+     #endif
+     
+     // display current opMode on HMI **************
+     memset(char_buffer, 0, sizeof(char_buffer));
+     strToChar(currentOpModeName); // mode name converted to chr in char_buffer
+     topmode.setText(char_buffer);
+
+    break;
+
+    case 1:
+      // #TODO: ???
+    break;
+
+    default:
+    break;
+   }
+   displayTimer = millis();
+ } // check display timer
+}
 
 
-//*************** motors encoders (Hall) sensors definitions
-//setup timer interrupt for motor encoders
-DueTimer encoderTimer = Timer.getAvailable();
-
-volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
-volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
-volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
-
-volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
-volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
-volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
-
-volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
-
-const byte S1motorEncoder_L_PIN = 22;  // motor encoder S1 A pin
-const byte S2motorEncoder_L_PIN = 24;  // motor encoder S2 B pin 
-const byte S1motorEncoder_R_PIN = 26;  // motor encoder S1 pin
-const byte S2motorEncoder_R_PIN = 28;  // motor encoder S2 pin
-
-//*************************************************************
-//definitions for Ps2 controler for teleoperation
-//*************************************************************
-
-PS2X ps2x; // create PS2 Controller Class object
-
-// SPI bus pins on Arduino Due ICSP connector near SAM3X8E chip
-#define SPI_MISO 74
-#define SPI_MOSI 75
-#define SPI_CLK  76
-#define PS2X_CS  49 // chip select for PS2X controler
-
-//byte PS2_vibrate_level{0}; // no vibration
-
-//*************************************************************
-//definitions for displays, indicators, etc.
-//*************************************************************
-#define MESSAGE_BUFFER_OVERFLOW_LED_PIN 53
-
-//**************** FUNCTIONS DEFINITIONS
 void ISR_timerEncoder(void) {
      //debug noInterrupts(); //stop all interrupts
      //debug possibly just detach this ISR here and reattach at the end
@@ -86,16 +102,13 @@ void ISR_timerEncoder(void) {
 void ISR_S1_L(void) {
   ++S1_L_count;
 }
+
 void ISR_S1_R(void) {
   ++S1_R_count;
 }
 
 // this set of motor functions are use for motor control in all
 // the modes that require motor control by software.
-
-// motor direction
-const byte FORWARD {0};
-const byte REVERSE {1};
 
 void motorRightSet(int speed, byte direction) {
  switch (direction) {
@@ -208,7 +221,6 @@ void set_ps2x(void) {
        break;
      }
 }
-
 
 
 //********************************************
@@ -396,6 +408,9 @@ void motor_TELEOP_node_v1(void) {
   delay(50);
 } // fin motor_TELEOP_node_v1
 
+//********************************************
+//*********** JUST_DO_THIS *******************
+
 void just_do_this() {
   updateDisplayAndIndicators();
   Serial.println("Both motors FORWARD for 4s");
@@ -431,7 +446,10 @@ void just_do_this() {
   delay(5000);
 }
 
-//debug note SHOULD BE REMOVED (BY COMMENTING) IN PRODUCTION
+//debug code SHOULD BE DISABLED IN PRODUCTION
+//********************************************
+//**MEASURE_AND_CALIBRATE_MOTORS**************
+
 void measureAndCalibrateMotors(void) {
   updateDisplayAndIndicators();
   Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
@@ -461,6 +479,36 @@ void measureAndCalibrateMotors(void) {
    ; // we do this only once
   }
 }
+
+void standby(void) {
+  // #TODO 
+  /*  make sure motors are stopped
+   *  get status of Nextion display
+   *  get status of RTC
+   *  - get time values from RTC
+   *  get status of SD card adaptor
+   *  get status of IR sensor array
+   *  get status of IMU
+   *  - get attitude date from IMU
+   *  get status of message buffer
+   *  get status of serial comm to remote HMI
+   *  
+   *  send relevant telemetry
+   * 
+  */
+  
+  updateDisplayAndIndicators(); // update display and indicators
+}
+
+void free_run(void) {
+ // #TODO
+ /*
+  * get status of IR array
+  * get obstacle
+ */
+ updateDisplayAndIndicators();
+}
+
 
 // runs the selected opMode
 void runOpMode(byte om) {
@@ -503,15 +551,14 @@ void runOpMode(byte om) {
      standby(); //safest thing to do
   }  
 }
-
-void free_run(void) {
- // #TODO
- /*
-  * get status of IR array
-  * get obstacle
- */
- updateDisplayAndIndicators();
+// put part of a string into char char_buffer
+void strToChar(String s) {
+  memset(char_buffer, 0, sizeof(char_buffer));
+  for (byte i=0; i < s.length(); i++) {
+    char_buffer[i] = s.charAt(i);
+  }
 }
+
 
 void setGPIOs(void) {
  //debug we might use this later
@@ -536,81 +583,12 @@ void setGPIOs(void) {
   pinMode(MESSAGE_BUFFER_OVERFLOW_LED_PIN, OUTPUT);
   digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);
 
+  pinMode(SYSTEM_READY_LED, OUTPUT);
+  digitalWrite(SYSTEM_READY_LED, LOW);  // system not ready
+
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
 }
 
-void standby(void) {
-  // #TODO 
-  /*  make sure motors are stopped
-   *  get status of Nextion display
-   *  get status of RTC
-   *  - get time values from RTC
-   *  get status of SD card adaptor
-   *  get status of IR sensor array
-   *  get status of IMU
-   *  - get attitude date from IMU
-   *  get status of message buffer
-   *  get status of serial comm to remote HMI
-   *  
-   *  send relevant telemetry
-   * 
-  */
-  
-  updateDisplayAndIndicators(); // update display and indicators
-}
-
-// put part of a string into char char_buffer
-void strToChar(String s) {
-  memset(char_buffer, 0, sizeof(char_buffer));
-  for (byte i=0; i < s.length(); i++) {
-    char_buffer[i] = s.charAt(i);
-  }
-}
-
-void updateDisplayAndIndicators(void) {
- if ((millis() - displayTimer) > displayInterval) { // display interval
-     //debug dbSerialPrint("currentOpModeName= ");
-     //dbSerialPrintln(currentOpModeName);
-     //dbSerialPrintln("---\n");
-
-   // update message overflow LED on vehicule
- 
-   if (currentTopic == maxNbrTopics) {
-     digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, HIGH);
-   } else {digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);}
-
-   switch (currentHMIpage) {
-    case 0:
-      // display topicsOverflow on page 0 on HMI **************
-      //debug
-      topicsOverflow = random(100); //debug
-      if (topicsOverflow > 70) {
-       jbuffstat.Set_font_color_pco(63488); // red  
-      }
-      else {
-        jbuffstat.Set_font_color_pco(2016); // green
-      }
-   
-      if (topicsOverflow > 100) { topicsOverflow = 100; }
-      jbuffstat.setValue(topicsOverflow);
-
-     // display current opMode on HMI **************
-     memset(char_buffer, 0, sizeof(char_buffer));
-     strToChar(currentOpModeName); // mode name converted to chr in char_buffer
-     topmode.setText(char_buffer);
-
-    break;
-
-    case 1:
-      // #TODO: update the val and color of right BS button to current opMode
-    break;
-
-    default:
-    break;
-   }
-   displayTimer = millis();
- } // check display timer
-}
 
 void setup()
 {
@@ -619,16 +597,7 @@ void setup()
   Serial.begin(9600);    // for debuging, handled by Nextion library
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
-
-  #ifdef RTC_COMPILE
-  kva_rtc_init(); // starts RTC
-  Serial.print("RTCfound= ");
-  Serial.println(rtcFound);
-//  Serial.println(chaineDateHeure(true));
-  #endif
-
-  Serial.println( "Compiled: " __DATE__ ", " __TIME__ ", " __VERSION__);
-
+  delay(1000); // delay for everything to settle
 
   setGPIOs();
   motorAllStop();
@@ -655,13 +624,27 @@ void setup()
   bfrun.attachPop(bfrunPopCallback, &bfrun);
   brtc0.attachPop(brtc0PopCallback, &brtc0);
   brtc1.attachPop(brtc1PopCallback, &brtc1);
-  bplus.attachPop(bplusPopCallback, &bplus);
+  bplus5.attachPop(bplus5PopCallback, &bplus5);
+  bplus1.attachPop(bplus1PopCallback, &bplus1);
   bminus.attachPop(bminusPopCallback, &bminus);
   bsetRTC.attachPop(bsetRTCPopCallback, &bsetRTC);
 
   currentOpMode = STANDBY;
 
+  #ifdef RTC_COMPILE
+  kva_rtc_init(); // starts RTC
+  delay(2000);
+  Serial.print("rtcFound=");
+  Serial.println(rtcFound, DEC);
+  if (rtcFound) {
+    Serial.println(strDateTime(true));
+  } else {
+     Serial.println("RTC not found!");
+   }
+  #endif
+
   Serial.println("Setup finished\n");
+  digitalWrite(SYSTEM_READY_LED, HIGH); // now system is ready
 }
 
 void loop()
@@ -678,17 +661,10 @@ void loop()
  //currentOpMode = SENSORS_DEVELOPEMENT;
  //currentOpMode = NADDOCAM;
 
- // debug for devellopement. this delay will have to be ajusted according to the upmode
+ //#TODO for developement. this delay will have to be ajusted later
  delay(75);
  nexLoop(nex_listen_list);
- /*
-  if (opModeChangeRequested) {
-  manageOpModeTimer();
- } else {
-   runOpMode(currentOpMode);
- }
- */
- currentOpMode = selectedOpMode;
+ manageOpModeChange();
  runOpMode(currentOpMode);
 }
 //endif for COMPILE

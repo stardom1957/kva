@@ -2,54 +2,54 @@
 #define _kva_rtc_h
 #ifdef RTC_COMPILE
 
-#define ARDUINO_SAM_DUE // for DUE RTC will run on SCL1 and SDA1
+#define ARDUINO_SAM_DUE // for DUE RTC that will run on SCK1 and SDA1
 #include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and DUE Wire lib
 
-// RTC init global DS3231
+boolean rtcFound{false};     // RTC found or not
+boolean rtcNotInitialized{false}; // found RTC, but not initialized (probably power lost condition)
+
 RTC_DS3231 rtc;
 DateTime now;
+uint32_t daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-// retourne date et heure, avec ou sans secondes
-String chaineDateHeure(bool secondes) {
+// returns date and time w or w/o seconds
+String strDateTime(bool secondes) {
   now = rtc.now();
-  String dh = "";
-  dh += now.year();
+  String dt{NULL};
+  dt += now.year();
   //tft.print(now.year(), DEC);
-  dh += "-";
+  dt += "-";
   //tft.print('-');
-  if (now.month() < 10) dh += "0";
+  if (now.month() < 10) dt += "0";
   //if (now.month() < 10) tft.print('0');
-  dh += now.month();
-  dh += "-";
-  if (now.day() < 10) dh += "0";
-  dh += now.day();
-  dh += " ";
-  if (now.hour() < 10) dh += "0";
-  dh += now.hour();
-  dh += ":";
-  if (now.minute() < 10) dh += "0";
-  dh += now.minute();
+  dt += now.month();
+  dt += "-";
+  if (now.day() < 10) dt += "0";
+  dt += now.day();
+  dt += " ";
+  if (now.hour() < 10) dt += "0";
+  dt += now.hour();
+  dt += ":";
+  if (now.minute() < 10) dt += "0";
+  dt += now.minute();
   if (secondes){
-    dh += ":";
-    if (now.second() < 10) dh += "0";
-    dh += now.second();
+    dt += ":";
+    if (now.second() < 10) dt += "0";
+    dt += now.second();
   }
-  return dh;
+  return dt;
 }
 
-
-void kva_rtc_init(void) {
 // RTC init
+void kva_rtc_init(void) {
   if (rtc.begin()) {
     rtcFound = true;
-  }
-  rtcNotInitialized = rtc.lostPower();
-  if (rtcNotInitialized) {
-    // set the RTC to the date & time this sketch was compiled
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    // This line sets the RTC with an explicit date & time, for example to set
-    // January 21, 2014 at 3am you would call:
-    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+    rtcNotInitialized = rtc.lostPower();
+    if (rtcNotInitialized) {
+      // set the RTC to the date & time this sketch was compiled
+      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+      rtcNotInitialized = false;
+    }
   }
 }
 #endif //RTC_COMPILE

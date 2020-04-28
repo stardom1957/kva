@@ -8,11 +8,16 @@
  */
 
 #include "Nextion.h"
-// pages create callback only if needed
 
-//define some constants for HMI
+//define some constants for HMI color specific for Nextion
 #define GREEN 1024
 #define GREY 50712
+#define YELLOW 65504
+
+// page components
+NexPage page0    = NexPage(0, 0, "page0");
+NexPage page1    = NexPage(1, 0, "page1");
+NexPage page2    = NexPage(2, 0, "page2");
 
 //                                       (page, ID, objname)
 NexText topmode  =                NexText(0, 4, "topmode");    // displays current opMode
@@ -42,7 +47,8 @@ NexNumber nmin =       NexNumber(2, 8, "nmin");     // number field fo minutes
 NexNumber nsec =       NexNumber(2, 9, "nsec");     // number field for seconds
 NexDSButton btdate = NexDSButton(2, 16, "btdate");  // double state button to select date line for modif
 NexDSButton bttime = NexDSButton(2, 17, "bttime");  // double state button to select time line for modif
-NexButton bplus =      NexButton(2, 18, "bplus");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
+NexButton bplus5 =      NexButton(2, 18, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
+NexButton bplus1 =      NexButton(2, 22, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
 NexButton bminus =     NexButton(2, 19, "bminus");  // button to substract 1 from current field being modified CALLBACK REQUIRED
 NexDSButton btyh =   NexDSButton(2, 13, "btyh");    // double state button to select year and hour row for modif
 NexDSButton btmm =   NexDSButton(2, 14, "btmm");    // double state button to select month and minutes row for modif
@@ -53,7 +59,8 @@ NexButton bsetRTC =    NexButton(2, 21, "bsetRTC"); // button to set RTC CALLBAC
 NexTouch *nex_listen_list[] = 
 {
  &bop0, &bop2, &bsby, &btele, &bfrun, &bstat1, &bstat2,
- &brtc0, &brtc1, &bplus, &bminus, &bsetRTC, NULL
+ &brtc0, &brtc1, &bplus5, &bplus1, &bminus, &bsetRTC, 
+ &page0, &page1, &page2, NULL
 };
 
 /* ABOVE, removed unnecessary components 
@@ -61,14 +68,13 @@ NexTouch *nex_listen_list[] =
 {
  &bop0, &bop2, &bsby, &btele, &bfrun, &bstat1, &bstat2,
  &brtc0, &brtc1, &ngotimer, &nyear, &nmonth,
- &nday, &nhour, &nmin,  &nsec,  &btdate,   &bttime, &bplus,
+ &nday, &nhour, &nmin,  &nsec,  &btdate,   &bttime, &bplus5,
  &bminus, &btyh, &btmm, &btds, &bsetRTC, NULL
 };
 
 */
 
 char char_buffer[25] = {0};              // C-style char buffer to hold String data
-unsigned long timerOm{0};                // timer count to control delay to start selected opMode via HMI
 unsigned long displayTimer{0};           // timer count to control dislay of status to HMI
 unsigned long displayInterval{1000};     // display status interval in ms
 uint32_t delayStatOpMode = (uint32_t)10; // delay in s
@@ -90,10 +96,15 @@ void bstat2PopCallback(void *ptr) {
   currentHMIpage = 0;
 }
 
-// this will ajust the color of mode select buttons to green
-// to match currentOpMode
-void setOpmodeButtonColor(void) {
-  //set the color of button representing current opMode to green
+/*
+ * this will ajust the color of each mode select buttons
+ * according to the situation of the mode selection variables
+ * IMPORTANT NOTE: upon entering the page for opmode selection, all btn are set to GREY
+ * so that we only have to do 2 passes
+*/
+ 
+void setOpmodeButtonColors(void) {
+  // first pass: set color of button of current opMode to green
   switch(currentOpMode) {
     //**********************************************
     //***************** STANDBY *******************
@@ -126,6 +137,45 @@ void setOpmodeButtonColor(void) {
     
     default:
      ;
+  }
+
+
+  // if opModeChangeRequested do a second pass to set color
+  // of button of requested opMode to yellow
+  if (opModeChangeRequested) {
+    switch(requestedOpMode) {
+      //**********************************************
+      //***************** STANDBY *******************
+      case STANDBY:
+       bsby.Set_background_color_bco(YELLOW);
+      break;
+
+      case SENSORS_DEVELOPEMENT:
+      break;
+
+      case JUST_DO_THIS:
+      break;
+
+      //**********************************************
+      //***************** TELEOP *******************
+      case TELEOP: // teleoperation by remote
+       btele.Set_background_color_bco(YELLOW);
+      break;
+
+    //**********************************************
+    //***************** FREE_RUN *******************
+      case FREE_RUN:
+       bfrun.Set_background_color_bco(YELLOW);
+      break;
+
+      //************************************************
+      //******** MEASURE_AND_CALIBRATE_MOTORS **********
+      case MEASURE_AND_CALIBRATE_MOTORS:
+      break;
+    
+     default:
+     ;
+    }
   }
 }
 
@@ -183,50 +233,105 @@ byte getRTCbtnValue(void) {
   return bv;
 }
 
+//get date and time from RTC input page and attempt to
+//set RTC by it
+void setRTCfromInput(void) {
+  uint32_t nYear{0};
+  uint32_t nMonth{0};
+  uint32_t nDay{0};
+  uint32_t nHour{0};
+  uint32_t nMin{0};
+  uint32_t nSec{0};
+  int del{10}; // delay to get good reading from HMI
+
+  nyear.getValue(&nYear);
+  delay(del);
+  nmonth.getValue(&nMonth);
+  delay(del);
+  nday.getValue(&nDay);
+  delay(del);
+  nhour.getValue(&nHour);
+  delay(del);
+  nmin.getValue(&nMin);
+  delay(del);
+  nsec.getValue(&nSec);
+  // no check for valid date
+  // input code does not permit overly wrong values for most dates except feb and user should
+  // check on calendar for leap year
+
+  if (rtcFound) {
+   rtc.adjust(DateTime(nYear, nMonth, nDay, nHour, nMin, nSec));
+   //debug rtc.adjust(DateTime(2017, 4, 21, 22, 52, 13));
+   rtcNotInitialized = false;
+  }
+}
+
+
 // change to page 1
 void bop0PopCallback(void *ptr) {
   dbSerialPrintln("bop0PopCallback");
   currentHMIpage = 1;
-  setOpmodeButtonColor(); // set cirrectly selected opmode btn color to green
+  setOpmodeButtonColors(); // set opmode btn color according to situation
 }
 
 void bop2PopCallback(void *ptr) {
   dbSerialPrintln("bop2PopCallback");
   currentHMIpage = 1;
-  setOpmodeButtonColor(); // set cirrectly selected opmode btn color to green
+  setOpmodeButtonColors(); // set opmode btn color according to situation
 }
 
-// change to page 2
+void updateDTtoHMI(void) {
+    now = rtc.now();
+    int del{10}; // delay to get good I/O fom HMI
+
+    nyear.setValue(now.year());
+    delay(del);
+    nmonth.setValue(now.month());
+    delay(del);
+    nday.setValue(now.day());
+    delay(del);
+
+    nhour.setValue(now.hour());
+    delay(del);
+    nmin.setValue(now.minute());
+    delay(del);
+    nsec.setValue(now.second());
+    delay(del);
+}
+
+// change to page 2 from page 0
 void brtc0PopCallback(void *ptr) {
   dbSerialPrintln("brtc0PopCallback");
   currentHMIpage = 2;
+  // if rtc is ok send actual date and time values to HMI number fields
+  if (rtcFound && !rtcNotInitialized) updateDTtoHMI();
 }
 
+// change to page 2 from page 1
 void brtc1PopCallback(void *ptr) {
   dbSerialPrintln("brtc1PopCallback");
   currentHMIpage = 2;
+  // if rtc is ok send actual date and time values to HMI number fields
+  if (rtcFound && !rtcNotInitialized) updateDTtoHMI();
 }
 
-// add +5 to currently RTC selected field on page 2
-void bplusPopCallback(void *ptr) {
-  dbSerialPrintln("bplusPopCallback");
+// add +5|+1 to currently RTC selected field on page 2
+void incrementField(int inc) {
   int del{10}; // delay to get good I/O fom HMI
-  // TODO:
-  // get current RTC and set fields to them or else set them to compile time
-  
   //  find currently selected field
   byte field = getRTCbtnValue();
   
   uint32_t val{0};
-  //  ADD 5 to it, check and ajust to limits
+  uint32_t valm{0}; // needed to ckeck day
 
+  //  ADD 5 to it, check and ajust to limits
   switch(field) {
     case 17: // hour
      // get current value
      nhour.getValue(&val);
      delay(10);
      nhour.getValue(&val);
-     val+=5;
+     val+=inc;
 
      if (val >= 24) val = val % 24;
      delay(del);
@@ -238,7 +343,7 @@ void bplusPopCallback(void *ptr) {
      nmin.getValue(&val);
      delay(10);
      nmin.getValue(&val);
-     val+=5;
+     val+=inc;
 
      if (val >= 60) val = val % 60;
      delay(del);
@@ -250,7 +355,7 @@ void bplusPopCallback(void *ptr) {
      nsec.getValue(&val);
      delay(10);
      nsec.getValue(&val);
-     val+=5;
+     val+=inc;
 
      if (val >= 60) val = val % 60;
      delay(del);
@@ -262,7 +367,7 @@ void bplusPopCallback(void *ptr) {
      nyear.getValue(&val);
      delay(10);
      nyear.getValue(&val);
-     val+=5;
+     val+=inc;
 
      if (val < 2020) val = 2020;
      delay(del);
@@ -271,29 +376,43 @@ void bplusPopCallback(void *ptr) {
 
     case 10: // month
      // get current value
-     nmonth.getValue(&val);
+     nmonth.getValue(&valm);
      delay(10);
-     nmonth.getValue(&val);
-     val+=5;
+     nmonth.getValue(&valm);
+     valm+=inc;
 
-     if (val >= 12) val = val % 12;
+     if (valm > 12) valm = valm % 12;
      delay(del);
-     nmonth.setValue(val);
+     nmonth.setValue(valm);
     break;
 
     case 12: // day
-     // get current value
+     // get current day value
      nday.getValue(&val);
      delay(10);
      nday.getValue(&val);
-     val+=5;
+     val+=inc;
+     // get current month value
+     nmonth.getValue(&valm);
+     delay(10);
+     nmonth.getValue(&valm);
 
-     if (val >= 31) val = val % 31;
+     if (val > daysInMonth[valm-1]) val = 1;
      delay(del);
      nday.setValue(val);
     break;
-
  }
+  
+}
+
+void bplus5PopCallback(void *ptr) {
+  dbSerialPrintln("bplus5PopCallback");
+  incrementField(5);
+}
+
+void bplus1PopCallback(void *ptr) {
+  dbSerialPrintln("bplus1PopCallback");
+  incrementField(1);
 }
 
 // subtract 1 from currently RTC selected field on page 2
@@ -356,7 +475,7 @@ void bminusPopCallback(void *ptr) {
      delay(del);
      nyear.setValue(val);
     break;
-
+    
     case 10: // month
      // get current value
      nmonth.getValue(&val);
@@ -387,79 +506,95 @@ void bminusPopCallback(void *ptr) {
 void bsetRTCPopCallback(void *ptr) {
   dbSerialPrintln("bsetRTCPopCallback");
   // #TODO:
-  // check of all fields have valid values
+  // get and check all fields have valid values
+  setRTCfromInput();
   // set RTC
-  // check validity of set
-  // feed back (highlight proprer fields) in case of incorrect value
+  // validity of set date is somewhat garanteed
+  // except for leap day
+  // #TODO feed back (highlight proprer fields) in case of incorrect value
 }
 
-// call back of bsby select STANDBY opMode
+// request STANDBY opMode
 void bsbyPopCallback(void *ptr)
 {
-  // reset delay timer
   dbSerialPrintln("bsbyPopCallback");
   dbSerialPrintln("  ");
-  //ngotimer.setValue(delayStatOpMode);
-  //timerOm = millis(); // start timer
-  selectedOpMode = STANDBY; //set opMode desired
-  opModeChangeRequested = true;
+  if (currentOpMode != STANDBY) { //means first pression on button
+    if (!opModeChangeRequested) {
+     opModeChangeRequested = true;
+     requestedOpMode = STANDBY; //set opMode desired
+    }
+      else {  //means second pression on button
+        opModeChangeAutorized = true;
+      }
+    setOpmodeButtonColors(); // set opmode btn color according to new situation
+  }
+  else { // cancel all opmode change variables
+    opModeChangeRequested = false;
+    page1.show(); // set opmode btn color according to new situation
+    setOpmodeButtonColors();
+  }
 }
 
-// call back of btele select TELEOP opMode
+// request TELEOP opMode
 void btelePopCallback(void *ptr)
 {
-  // reset delay timer
   dbSerialPrintln("btelePopCallback");
   dbSerialPrintln("  ");
-  //ngotimer.setValue(delayStatOpMode);
-  //timerOm = millis(); // start timer
-  selectedOpMode = TELEOP; //set opMode desired
-  opModeChangeRequested = true;
+  if (currentOpMode != TELEOP) { //means first pression on button
+    if (!opModeChangeRequested) {
+     opModeChangeRequested = true;
+     requestedOpMode = TELEOP; //set opMode desired
+    }
+    else {  //means second pression on button
+        opModeChangeAutorized = true;
+      }
+    setOpmodeButtonColors(); // set opmode btn color according to new situation
+  }
+  else { // cancel all opmode change variables
+      opModeChangeRequested = false;
+      page1.show(); // set opmode btn color according to new situation
+      setOpmodeButtonColors();
+    }
 }
 
-// call back of bfrun select FREE_RUN opMode
+// request FREE_RUN opMode
 void bfrunPopCallback(void *ptr)
 {
-  // reset delay timer
-  dbSerialPrintln("bfrunPopCallback");
+  dbSerialPrintln("btelePopCallback");
   dbSerialPrintln("  ");
-  //ngotimer.setValue(delayStatOpMode);
-  //timerOm = millis(); // start timer
-  selectedOpMode = FREE_RUN; //set opMode desired
-  opModeChangeRequested = true;
+  if (currentOpMode != FREE_RUN) { //means first pression on button
+    if (!opModeChangeRequested) {
+     opModeChangeRequested = true;
+     requestedOpMode = FREE_RUN; //set opMode desired
+    }
+    else {  //means second pression on button
+        opModeChangeAutorized = true;
+      }
+   setOpmodeButtonColors(); // set opmode btn color according to new situation
+  }
+  else { // cancel all opmode change variables
+    opModeChangeRequested = false;
+    page1.show(); // set opmode btn color according to new situation
+    setOpmodeButtonColors();
+  }
 }
 
 // manages change of opMode at the end of timer
-void manageOpModeTimer(void) {
-  //uint32_t oldTimer;
-  dbSerialPrintln("manageOpModeTimer");
+void manageOpModeChange(void) {
+  dbSerialPrintln("manageOpModeChange");
   dbSerialPrintln("  ");
-  //dbSerialPrintln("...timer=");
-  //dbSerialPrintln(oldTimer);
 
-  //update display on HMI every second
-  //ngotimer.getValue(&oldTimer);
-/*  if (oldTimer != 0) {
-    if (millis() > timerOm + 1000) {
-      //ngotimer.getValue(&oldTimer);
-      oldTimer-=1;
-      ngotimer.setValue(oldTimer);
-      timerOm = millis();
-    }
-  }
-  else {
-    standby(); // first go in STANDBY mode to reset every thing
-    currentOpMode = selectedOpMode;
+  if (opModeChangeRequested && opModeChangeAutorized) {
+   currentOpMode = requestedOpMode;
+   Serial.print("debug requestedOpMode: ");
+   Serial.println(requestedOpMode);
     opModeChangeRequested = false;
-    //debug
-    Serial.print("selectedOpMode: ");
-    Serial.println(selectedOpMode);
+    opModeChangeAutorized = false;
+    //#TODO effect opmode change
+    currentHMIpage = 0;
+    page0.show(); //show status page 0 to monitor change
   }
-*/
-    Serial.print("selectedOpMode: ");
-    Serial.println(selectedOpMode);
-    opModeChangeRequested = false;
-
 }
 
 //place into loop()
