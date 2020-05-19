@@ -14,19 +14,23 @@ void motorLeftStop();
 void motorAllStop();
 void set_ps2x();
 void motor_TELEOP_node_v1();
-void just_do_this();
-void free_run();
-void measureAndCalibrateMotors();
-void standby();
-void runOpMode();
-String assembleMessage();
-byte storeTopic();
-void sendTelemetry();
-void setGPIOs();
-void updateDisplayAndIndicators();
-void manageOpModeChange();
-void strToChar();
-void kva_rtc_init();
+void run_preset_course(void);
+void free_run(void);
+void measureAndCalibrateMotors(void);
+void standby(void);
+void runOpMode(byte);
+
+#ifdef TELEMETRY
+String assembleMessage(Topic);
+byte storeTopic(byte, String, char, byte);
+void sendTelemetry(byte);
+#endif
+
+void setGPIOs(void);
+void updateDisplayAndIndicators(void);
+void manageOpModeChange(void);
+void strToChar(String);
+void kva_rtc_init(void);
 void setOpmodeButtonColors(void);
 String strDateTime(bool);
 void updateDTtoHMI(void);
@@ -36,7 +40,7 @@ void setRTCfromInput(void);
 //opmodes
 #define STANDBY 0                        // at rest but diagnostic and communication running
 #define SENSORS_DEVELOPEMENT 15          // as it says
-#define JUST_DO_THIS 30                  // executes a series of preset commands
+#define RUN_PRESET_COURSE 30             // executes a series of preset commands
 #define FREE_RUN  35                     // runs in obstacle collision avoidance on
 #define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
@@ -48,7 +52,7 @@ void setRTCfromInput(void);
 //*****************************************************************
 //***STATUS*****STATUS*****STATUS*****STATUS*****STATUS*****STATUS*
 
-#define MESSAGE_BUFFER_OVERFLOW_LED_PIN 53
+#define YELLOW_ALERT_CONDITION 53
 #define SYSTEM_READY_LED 52
 
 // *** STATUS FOR OPMODE CONTROL

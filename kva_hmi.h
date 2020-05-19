@@ -13,11 +13,15 @@
 #define GREEN 1024
 #define GREY 50712
 #define YELLOW 65504
+//#define RED ????
+
+// hmi STATUS
+boolean hmiFound{false};
 
 // page components
-NexPage page0    = NexPage(0, 0, "page0");
-NexPage page1    = NexPage(1, 0, "page1");
-NexPage page2    = NexPage(2, 0, "page2");
+NexPage page0    = NexPage(0, 0, "page0"); // main status page and default page
+NexPage page1    = NexPage(1, 0, "page1"); // set opMode page
+NexPage page2    = NexPage(2, 0, "page2"); // set RTC page
 
 //                                       (page, ID, objname)
 NexText topmode  =                NexText(0, 4, "topmode");    // displays current opMode
@@ -63,7 +67,7 @@ NexTouch *nex_listen_list[] =
  &page0, &page1, &page2, NULL
 };
 
-/* ABOVE, removed unnecessary components 
+/* ABOVE, removed unnecessary components from this list
 NexTouch *nex_listen_list[] = 
 {
  &bop0, &bop2, &bsby, &btele, &bfrun, &bstat1, &bstat2,
@@ -115,7 +119,7 @@ void setOpmodeButtonColors(void) {
     case SENSORS_DEVELOPEMENT:
      break;
 
-    case JUST_DO_THIS:
+    case RUN_PRESET_COURSE:
      break;
 
     //**********************************************
@@ -146,6 +150,7 @@ void setOpmodeButtonColors(void) {
     switch(requestedOpMode) {
       //**********************************************
       //***************** STANDBY *******************
+
       case STANDBY:
        bsby.Set_background_color_bco(YELLOW);
       break;
@@ -153,7 +158,7 @@ void setOpmodeButtonColors(void) {
       case SENSORS_DEVELOPEMENT:
       break;
 
-      case JUST_DO_THIS:
+      case RUN_PRESET_COURSE:
       break;
 
       //**********************************************
@@ -229,7 +234,6 @@ byte getRTCbtnValue(void) {
   if ( val == 1) {
     bv+=16;
   }
-  
   return bv;
 }
 
@@ -261,27 +265,31 @@ void setRTCfromInput(void) {
 
   if (rtcFound) {
    rtc.adjust(DateTime(nYear, nMonth, nDay, nHour, nMin, nSec));
-   //debug rtc.adjust(DateTime(2017, 4, 21, 22, 52, 13));
-   rtcNotInitialized = false;
+   //debug rtc.adjust(DateTime(2017, 4, 21, 22, 52, 00));
+   rtcInitialized = true;
   }
 }
 
 
-// change to page 1
+// change to page 1 from page 0
 void bop0PopCallback(void *ptr) {
   dbSerialPrintln("bop0PopCallback");
   currentHMIpage = 1;
   setOpmodeButtonColors(); // set opmode btn color according to situation
 }
 
+// change to page 1 from page 2
 void bop2PopCallback(void *ptr) {
   dbSerialPrintln("bop2PopCallback");
   currentHMIpage = 1;
   setOpmodeButtonColors(); // set opmode btn color according to situation
 }
 
+// gets date and time from RTC and set corresponding fields on page
 void updateDTtoHMI(void) {
     now = rtc.now();
+    dbSerialPrint("debug DT=");
+    dbSerialPrintln(strDateTime(true));
     int del{10}; // delay to get good I/O fom HMI
 
     nyear.setValue(now.year());
@@ -304,7 +312,7 @@ void brtc0PopCallback(void *ptr) {
   dbSerialPrintln("brtc0PopCallback");
   currentHMIpage = 2;
   // if rtc is ok send actual date and time values to HMI number fields
-  if (rtcFound && !rtcNotInitialized) updateDTtoHMI();
+  if (rtcFound) updateDTtoHMI();
 }
 
 // change to page 2 from page 1
@@ -312,7 +320,7 @@ void brtc1PopCallback(void *ptr) {
   dbSerialPrintln("brtc1PopCallback");
   currentHMIpage = 2;
   // if rtc is ok send actual date and time values to HMI number fields
-  if (rtcFound && !rtcNotInitialized) updateDTtoHMI();
+  if (rtcFound) updateDTtoHMI();
 }
 
 // add +5|+1 to currently RTC selected field on page 2
@@ -505,38 +513,35 @@ void bminusPopCallback(void *ptr) {
 
 void bsetRTCPopCallback(void *ptr) {
   dbSerialPrintln("bsetRTCPopCallback");
-  // #TODO:
-  // get and check all fields have valid values
   setRTCfromInput();
-  // set RTC
   // validity of set date is somewhat garanteed
   // except for leap day
-  // #TODO feed back (highlight proprer fields) in case of incorrect value
+  // #TODO? feed back (highlight proprer fields) in case of incorrect value
 }
 
-// request STANDBY opMode
+// STANDBY opMode requested
 void bsbyPopCallback(void *ptr)
 {
   dbSerialPrintln("bsbyPopCallback");
   dbSerialPrintln("  ");
-  if (currentOpMode != STANDBY) { //means first pression on button
-    if (!opModeChangeRequested) {
+  if (currentOpMode != STANDBY) {
+    if (!opModeChangeRequested) { //means first pression on button
      opModeChangeRequested = true;
      requestedOpMode = STANDBY; //set opMode desired
     }
-      else {  //means second pression on button
+      else if (requestedOpMode == STANDBY) {  //means second pression on button
         opModeChangeAutorized = true;
       }
     setOpmodeButtonColors(); // set opmode btn color according to new situation
   }
-  else { // cancel all opmode change variables
+  else { // cancel any opmode change request
     opModeChangeRequested = false;
     page1.show(); // set opmode btn color according to new situation
     setOpmodeButtonColors();
   }
 }
 
-// request TELEOP opMode
+// TELEOP opMode requested
 void btelePopCallback(void *ptr)
 {
   dbSerialPrintln("btelePopCallback");
@@ -546,7 +551,7 @@ void btelePopCallback(void *ptr)
      opModeChangeRequested = true;
      requestedOpMode = TELEOP; //set opMode desired
     }
-    else {  //means second pression on button
+    else if (requestedOpMode == TELEOP) {  //means second pression on button
         opModeChangeAutorized = true;
       }
     setOpmodeButtonColors(); // set opmode btn color according to new situation
@@ -555,10 +560,10 @@ void btelePopCallback(void *ptr)
       opModeChangeRequested = false;
       page1.show(); // set opmode btn color according to new situation
       setOpmodeButtonColors();
-    }
+  }
 }
 
-// request FREE_RUN opMode
+// FREE_RUN opMode requested
 void bfrunPopCallback(void *ptr)
 {
   dbSerialPrintln("btelePopCallback");
@@ -568,7 +573,7 @@ void bfrunPopCallback(void *ptr)
      opModeChangeRequested = true;
      requestedOpMode = FREE_RUN; //set opMode desired
     }
-    else {  //means second pression on button
+    else if (requestedOpMode == FREE_RUN) {  //means second pression on button
         opModeChangeAutorized = true;
       }
    setOpmodeButtonColors(); // set opmode btn color according to new situation
@@ -580,25 +585,19 @@ void bfrunPopCallback(void *ptr)
   }
 }
 
-// manages change of opMode at the end of timer
+// manages change of opMode
 void manageOpModeChange(void) {
-  dbSerialPrintln("manageOpModeChange");
-  dbSerialPrintln("  ");
-
   if (opModeChangeRequested && opModeChangeAutorized) {
+   dbSerialPrintln("manageOpModeChange");
+   dbSerialPrintln("  ");
    currentOpMode = requestedOpMode;
-   Serial.print("debug requestedOpMode: ");
-   Serial.println(requestedOpMode);
-    opModeChangeRequested = false;
-    opModeChangeAutorized = false;
-    //#TODO effect opmode change
-    currentHMIpage = 0;
-    page0.show(); //show status page 0 to monitor change
+   dbSerialPrintln("debug requestedOpMode: ");
+   dbSerialPrintln(requestedOpMode);
+   opModeChangeRequested = false;
+   opModeChangeAutorized = false;
+   //#TODO effect opmode change
+   currentHMIpage = 0;
+   page0.show(); //show status page 0 to monitor change
   }
 }
-
-//place into loop()
-//    nexLoop(nex_listen_list);
-
-
 #endif

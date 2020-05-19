@@ -45,15 +45,15 @@
  *  -- #DONE set RTC number fields page 2 according to RTC date and time
  *  -- #DONE RTC set from RTC SETUP page 2
  *  -- #DONE RTC set page 2 added a +1 btn
- *  --- #TODO test the above very thouroully <#####################################
+ *  -- #DONE test the above very thouroully <#####################################
  * 
  * Issue 6.3: On board displays and controls using Nextion HMI:
  *  - #TODO SEEMS A BUG: sometimes system seems to reset when going to RTc page 2 from page 1
- *  - #TODO why is HMI select automaticaly page 0 when reset even if HMi is runing?
+ *  - #DONE THERE'S A BUG: on change status when a opmode is allready yellow a press on a btn that is gray cancels the change: SHOULD do nothing <#####################################
  *  - #DONE opmode change implement mechanics using btn color and status variable
  *  - #TODO implement general diagnotics for sensors and peripheral and various status report using updateDisplayAndIndicators() for HMi and LEDs:
  *  -- #TODO changes from FREE_RUN to other modes to consider (because one  master switch for motors power and sensors and peripherals (5 vdc) is used!?
- *  - #TODO will probably change page 0 to add dt values and other pages if needed
+ *  -- #TODO will probably change page 0 to add dt values and other pages if needed
  *  
  * Issue 6.2.1 Software (class) developement:
  *  - #TODO message passing routines see telemetry.h

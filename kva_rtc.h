@@ -5,23 +5,20 @@
 #define ARDUINO_SAM_DUE // for DUE RTC that will run on SCK1 and SDA1
 #include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and DUE Wire lib
 
-boolean rtcFound{false};     // RTC found or not
-boolean rtcNotInitialized{false}; // found RTC, but not initialized (probably power lost condition)
+boolean rtcFound{false};      // RTC found or not
+boolean rtcInitialized{true}; // found RTC, but not initialized for ex. due to power lost
 
 RTC_DS3231 rtc;
 DateTime now;
 uint32_t daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 // returns date and time w or w/o seconds
-String strDateTime(bool secondes) {
+String strDateTime(bool seconds) {
   now = rtc.now();
   String dt{NULL};
-  dt += now.year();
-  //tft.print(now.year(), DEC);
+  dt = now.year();
   dt += "-";
-  //tft.print('-');
   if (now.month() < 10) dt += "0";
-  //if (now.month() < 10) tft.print('0');
   dt += now.month();
   dt += "-";
   if (now.day() < 10) dt += "0";
@@ -32,7 +29,7 @@ String strDateTime(bool secondes) {
   dt += ":";
   if (now.minute() < 10) dt += "0";
   dt += now.minute();
-  if (secondes){
+  if (seconds){
     dt += ":";
     if (now.second() < 10) dt += "0";
     dt += now.second();
@@ -44,13 +41,24 @@ String strDateTime(bool secondes) {
 void kva_rtc_init(void) {
   if (rtc.begin()) {
     rtcFound = true;
-    rtcNotInitialized = rtc.lostPower();
-    if (rtcNotInitialized) {
+    // if year==02165, the RTC cannot be read
+    // if year==2000, the RTC has probably lost power
+    now = rtc.now();
+    if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
+    //Serial.print("debug year= ");
+    //Serial.println(now.year());
+    
+    if (!rtcInitialized) {
       // set the RTC to the date & time this sketch was compiled
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-      rtcNotInitialized = false;
+      Serial.print("RTC set to compile time: ");
+      Serial.print(F(__DATE__));
+      Serial.print(" ");
+      Serial.println(F(__TIME__));
+      rtcInitialized = true;
     }
   }
+  //debug Serial.println(strDateTime(true));
 }
 #endif //RTC_COMPILE
 #endif

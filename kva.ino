@@ -10,7 +10,6 @@ History, see kva_history.h tab
 //#define DUE_TIMER_TEST0 // developpement test only, see DueTimer0 tab
 //#define DUE_TIMER_TEST1 // developpement test only, see DueTimer1 tab
 //#define COMPILE_PS2EXAMPLE // developpement test only
-//#define JUMPERS_AS_INPUT // developpement only, setting opMode uing jumpers
 #define RTC_COMPILE
 
 //************************************************
@@ -23,30 +22,36 @@ History, see kva_history.h tab
 
 #include <DueTimer.h>
 #include <PS2X_lib.h>  //revised library from KurtE from Github
-#include "kva.h"
-#include "kva_rtc.h"
-#include "kva_hmi.h" // for HMI display and control
 #ifdef TELEMETRY
 #include "telemetry.h"
 #endif
+#include "kva.h"
+#include "kva_rtc.h"
+#include "kva_hmi.h" // for HMI display and control
 
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) { // display interval
      //#TODO set SYSTEM_READY_LED according to system status
-     digitalWrite(SYSTEM_READY_LED, HIGH);
+     //check RTC status
+     //check other status
+     //yellow LED on if any adverse condition occur
 
+     if (!rtcFound || !hmiFound) digitalWrite(YELLOW_ALERT_CONDITION, HIGH);
+     
     /* #TODO what to do with these
-     rtcNotInitialized
+     !rtcInitialized
      rtcFound
     */
    
    // update message overflow LED on vehicule
+/*
    #ifdef TELEMETRY
    if (currentTopic == maxNbrTopics) {
-     digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, HIGH);
-   } else {digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);}
+     digitalWrite(YELLOW_ALERT_CONDITION, HIGH);
+   } else {digitalWrite(YELLOW_ALERT_CONDITION, LOW);}
    #endif
-   
+*/
+   // display status according to currently selected status page
    switch (currentHMIpage) {
     case 0:
       // display topicsOverflow on page 0 on HMI **************
@@ -193,8 +198,8 @@ void motorAllStop(void)
 //***************** PS2 controler setting function
 void set_ps2x(void) {
  digitalWrite(PS2X_CS, LOW); // select controler for action
- 
- PS2_config_result = ps2x.config_gamepad(SPI_CLK, SPI_MOSI, PS2X_CS, SPI_MISO, true, true);   //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for PS2_config_result
+ //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for PS2_config_result
+ PS2_config_result = ps2x.config_gamepad(SPI_CLK, SPI_MOSI, PS2X_CS, SPI_MISO, true, true);
  
  if(PS2_config_result == 0){
    Serial.println("Found Controller, configured successful");
@@ -232,7 +237,6 @@ void motor_TELEOP_node_v1(void) {
   int ps2RY; //we are using the right hand joystick
   int ps2RX;  
   const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
-  updateDisplayAndIndicators();
   
   if(PS2_config_result == 254) { //try to setup controler up to 10 times
    // debug Serial.println("Setting controler...");
@@ -263,11 +267,11 @@ void motor_TELEOP_node_v1(void) {
    ps2x.ButtonPressed(PSB_RED)
    ps2x.ButtonReleased(PSB_PINK)
   */    
-    int slow_motors {200};
+    int emergency_slow {50};
     //slow forward
     if(ps2x.ButtonPressed(PSB_PAD_UP)){
-      motorLeftSet(slow_motors, FORWARD);
-      motorRightSet(slow_motors, FORWARD);
+      motorLeftSet(emergency_slow, FORWARD);
+      motorRightSet(emergency_slow, FORWARD);
     }
     if(ps2x.ButtonReleased(PSB_PAD_UP)){
       motorAllStop();
@@ -275,8 +279,8 @@ void motor_TELEOP_node_v1(void) {
 
     //slow reverse
     if(ps2x.ButtonPressed(PSB_PAD_DOWN)){
-      motorLeftSet(slow_motors, REVERSE);
-      motorRightSet(slow_motors, REVERSE);
+      motorLeftSet(emergency_slow, REVERSE);
+      motorRightSet(emergency_slow, REVERSE);
     }   
     if(ps2x.ButtonReleased(PSB_PAD_DOWN)){
       motorAllStop();
@@ -284,7 +288,7 @@ void motor_TELEOP_node_v1(void) {
 
     //slow left in place retation    
     if(ps2x.ButtonPressed(PSB_PAD_LEFT)){
-      vehiculeRotateLeft(slow_motors);
+      vehiculeRotateLeft(emergency_slow);
     }
     if(ps2x.ButtonReleased(PSB_PAD_LEFT)) {
       motorAllStop();
@@ -292,15 +296,15 @@ void motor_TELEOP_node_v1(void) {
 
     //slow in place right rotation
     if(ps2x.ButtonPressed(PSB_PAD_RIGHT)){
-       vehiculeRotateRight(slow_motors);
+       vehiculeRotateRight(emergency_slow);
     }
     if(ps2x.ButtonReleased(PSB_PAD_RIGHT)) {
       motorAllStop();
     }
 
   
-  //**************** JOYSTICK OPERATION **********************
-  //****************** left stick will be read only if button PSB_L1 is held pressed
+  //**************** JOYSTICK OPERATION ********************************************
+  //****************** all buttons are read only if button PSB_L1 is held pressed
   //****************** this is the dead man's grip
   if(ps2x.Button(PSB_L1)) {
 
@@ -409,10 +413,9 @@ void motor_TELEOP_node_v1(void) {
 } // fin motor_TELEOP_node_v1
 
 //********************************************
-//*********** JUST_DO_THIS *******************
+//*********** RUN_PRESET_COURSE *******************
 
-void just_do_this() {
-  updateDisplayAndIndicators();
+void run_preset_course(void) {
   Serial.println("Both motors FORWARD for 4s");
   motorLeftSet(200, FORWARD);
   motorRightSet(200, FORWARD);
@@ -451,7 +454,6 @@ void just_do_this() {
 //**MEASURE_AND_CALIBRATE_MOTORS**************
 
 void measureAndCalibrateMotors(void) {
-  updateDisplayAndIndicators();
   Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
   motorLeftSet(128, FORWARD);
   motorRightSet(128, FORWARD);
@@ -496,8 +498,6 @@ void standby(void) {
    *  send relevant telemetry
    * 
   */
-  
-  updateDisplayAndIndicators(); // update display and indicators
 }
 
 void free_run(void) {
@@ -506,7 +506,6 @@ void free_run(void) {
   * get status of IR array
   * get obstacle
  */
- updateDisplayAndIndicators();
 }
 
 
@@ -523,9 +522,9 @@ void runOpMode(byte om) {
      sensorDeveloppement();
      break;
 
-    case JUST_DO_THIS:
-     currentOpModeName = "JUST_DO_THIS";
-     just_do_this();
+    case RUN_PRESET_COURSE:
+     currentOpModeName = "RUN_PRESET_COURSE";
+     run_preset_course();
      break;
 
     case TELEOP: // teleoperation by remote
@@ -580,24 +579,19 @@ void setGPIOs(void) {
   pinMode(S2motorEncoder_R_PIN,INPUT);
 
  // indicators, controls and displays
-  pinMode(MESSAGE_BUFFER_OVERFLOW_LED_PIN, OUTPUT);
-  digitalWrite(MESSAGE_BUFFER_OVERFLOW_LED_PIN, LOW);
-
+  pinMode(YELLOW_ALERT_CONDITION, OUTPUT);
   pinMode(SYSTEM_READY_LED, OUTPUT);
-  digitalWrite(SYSTEM_READY_LED, LOW);  // system not ready
-
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
+  digitalWrite(SYSTEM_READY_LED, LOW);  // system not ready
+  digitalWrite(YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
 }
 
 
 void setup()
 {
-  //debug noInterrupts(); //no interrupts at this point
-  
   Serial.begin(9600);    // for debuging, handled by Nextion library
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
-  delay(1000); // delay for everything to settle
 
   setGPIOs();
   motorAllStop();
@@ -610,8 +604,7 @@ void setup()
   encoderTimer.attachInterrupt(ISR_timerEncoder);
   encoderTimer.start();
 
-  nexInit(); // start HMI
-  delay(500);
+  hmiFound = nexInit(); // start HMI
 
   /* attach all event callback functions to HMI components. */
 
@@ -633,39 +626,20 @@ void setup()
 
   #ifdef RTC_COMPILE
   kva_rtc_init(); // starts RTC
-  delay(2000);
-  Serial.print("rtcFound=");
-  Serial.println(rtcFound, DEC);
-  if (rtcFound) {
-    Serial.println(strDateTime(true));
-  } else {
-     Serial.println("RTC not found!");
-   }
   #endif
 
-  Serial.println("Setup finished\n");
+  //debug Serial.println("Setup finished\n");
+  digitalWrite(YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   digitalWrite(SYSTEM_READY_LED, HIGH); // now system is ready
 }
 
 void loop()
 {
- //****************************************************************
- //***************** get new opMode value from command channel ****
- //****************************************************************
- // for now hard code the opMode
-
- //currentOpMode = STANDBY;
- //currentOpMode = TELEOP;
- //currentOpMode = MEASURE_AND_CALIBRATE_MOTORS;
- //currentOpMode = JUST_DO_THIS;
- //currentOpMode = SENSORS_DEVELOPEMENT;
- //currentOpMode = NADDOCAM;
-
- //#TODO for developement. this delay will have to be ajusted later
- delay(75);
+ updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();
  runOpMode(currentOpMode);
+ delay(10); //#TODO for developement. this delay will have to be ajusted later
 }
 //endif for COMPILE
 #endif
