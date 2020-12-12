@@ -13,7 +13,7 @@
 #define GREEN 1024
 #define GREY 50712
 #define YELLOW 65504
-//#define RED ????
+#define RED 63488
 
 // hmi STATUS
 boolean hmiFound{false};

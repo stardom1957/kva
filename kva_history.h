@@ -37,7 +37,7 @@
  *  -- #DONE merge hmiv3 branch
  *  -- #DONE delete hmiv3
  *  
- *  on branch issue7_2_1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+ *  ON BRANCH issue7_2_1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
  *  
  * Issue 7.2.1 RTC:
  *  - on
@@ -46,6 +46,8 @@
  *  -- #DONE RTC set from RTC SETUP page 2
  *  -- #DONE RTC set page 2 added a +1 btn
  *  -- #DONE test the above very thouroully <#####################################
+ *  
+ *  BRANCH issue7_2_1 merged and deleted
  * 
  * Issue 6.3: On board displays and controls using Nextion HMI:
  *  - #TODO SEEMS A BUG: sometimes system seems to reset when going to RTc page 2 from page 1
@@ -58,6 +60,14 @@
  * Issue 6.2.1 Software (class) developement:
  *  - #TODO message passing routines see telemetry.h
  * 
-*/
+ * * vvvvvv ON BRANCH statusVersion2 vvvv ON BRANCH statusVersion2 vvvv ON BRANCH statusVersion2 vvvv ON BRANCH statusVersion2 vvvv
+ * Issue 6.3: On board displays and controls using Nextion HMI: version 2
+ *  - #TODO implement status reported in title on page (0)
+ *  - #TODO implement heartbeat to the right of status (title) on page 0 (perhaps using two agjascent square that change color to green every 0.5 sec)
+ *  - #TODO implement one button (w/o callback) for each state using color grey == not implemented, yellow == problem, green == ok, red == big problem
+ *  -- #TODO perhaps place these buttons in a sort of matrix drawn with lines
+ *  
+ * ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 
+ */
 #endif
 

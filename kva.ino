@@ -59,10 +59,10 @@ void updateDisplayAndIndicators(void) {
       #ifdef TELEMETRY
       topicsOverflow = random(100); //debug
       if (topicsOverflow > 70) {
-       jbuffstat.Set_font_color_pco(63488); // red  
+       jbuffstat.Set_font_color_pco(RED);
       }
       else {
-        jbuffstat.Set_font_color_pco(2016); // green
+        jbuffstat.Set_font_color_pco(GREEN); // green
       }
      
       if (topicsOverflow > 100) { topicsOverflow = 100; }
