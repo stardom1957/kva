@@ -22,9 +22,11 @@ History, see kva_history.h tab
 
 #include <DueTimer.h>
 #include <PS2X_lib.h>  //revised library from KurtE from Github
+
 #ifdef TELEMETRY
 #include "telemetry.h"
 #endif
+
 #include "kva.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
@@ -589,7 +591,7 @@ void setGPIOs(void) {
 
 void setup()
 {
-  Serial.begin(9600);    // for debuging, handled by Nextion library
+  Serial.begin(9600);    // for debuging, handled by Nextion library see Nextion.h
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
 
@@ -622,6 +624,7 @@ void setup()
   bminus.attachPop(bminusPopCallback, &bminus);
   bsetRTC.attachPop(bsetRTCPopCallback, &bsetRTC);
 
+  /* this is the default opmode at start of vehicule */
   currentOpMode = STANDBY;
 
   #ifdef RTC_COMPILE
@@ -641,6 +644,6 @@ void loop()
  runOpMode(currentOpMode);
  delay(10); //#TODO for developement. this delay will have to be ajusted later
 }
-//endif for COMPILE
+//endif for COMPILE_MAIN
 #endif
 
