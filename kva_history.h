@@ -70,6 +70,9 @@
  * ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2 ^^^^ END OF BRANCH statusVersion2
  * 
  *  BRANCH statusVersion2 merged into master and deleted
+ *  ON BRANCH definitions_for_debugs vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+ *  
+ *  - add any necessary #define statements to compile | not compile serial.print statements mainly used for debuging
+ *  
  */
 #endif
-
