@@ -29,18 +29,18 @@ NexProgressBar jbuffstat = NexProgressBar(0, 5, "jbuffstat");  // displays progr
 
 // main menu buttons components repeat on each page
 // note: all page change are handled by HMI, so no callback function required!
-NexDSButton bstat1 =              NexDSButton(1, 4, "bstat1");       // page 1 button to status 0 CALLBACK REQUIRED
-NexDSButton bstat2 =              NexDSButton(2, 1, "bstat2");       // page 2 button to status page 0 CALLBACK REQUIRED
-NexDSButton bop0   =              NexDSButton(0, 7, "bop0");       // page 0 button to opMode selection page 1 CALLBACK REQUIRED
-NexDSButton bop2   =              NexDSButton(2, 2, "bop2");       // page 2 button to opMode selection page 1 CALLBACK REQUIRED
-NexDSButton brtc0  =              NexDSButton(0, 8, "brtc0");       // page 0 button to rtc set page 2 CALLBACK REQUIRED
-NexDSButton brtc1  =              NexDSButton(1, 6, "brtc1");       // page 1 button to rtc set page 2 CALLBACK REQUIRED
+NexDSButton bstat1 =              NexDSButton(1, 4, "bstat1"); // page 1 button to status 0 CALLBACK REQUIRED
+NexDSButton bstat2 =              NexDSButton(2, 1, "bstat2"); // page 2 button to status page 0 CALLBACK REQUIRED
+NexDSButton bop0   =              NexDSButton(0, 7, "bop0");   // page 0 button to opMode selection page 1 CALLBACK REQUIRED
+NexDSButton bop2   =              NexDSButton(2, 2, "bop2");   // page 2 button to opMode selection page 1 CALLBACK REQUIRED
+NexDSButton brtc0  =              NexDSButton(0, 8, "brtc0");  // page 0 button to rtc set page 2 CALLBACK REQUIRED
+NexDSButton brtc1  =              NexDSButton(1, 6, "brtc1");  // page 1 button to rtc set page 2 CALLBACK REQUIRED
 
 // page 1 set opMode components
 NexButton bsby      = NexButton(1, 7, "bsby");        // STANDBY mode select button CALLBACK REQUIRED
 NexButton bfrun     = NexButton(1, 8, "bfrun");       // FREE_RUN mode select button CALLBACK REQUIRED
 NexButton btele     = NexButton(1, 9, "btele");       // TELEOPY mode select button CALLBACK REQUIRED
-NexNumber ngotimer      = NexNumber(1, 3, "ngotimer");    // time count for timer to start selected opMode
+NexNumber ngotimer  = NexNumber(1, 3, "ngotimer");    // time count for timer to start selected opMode
 
 // page 2 set RTC date and time components
 NexNumber nyear =      NexNumber(2, 4, "nyear");    // number field for year >= 2020

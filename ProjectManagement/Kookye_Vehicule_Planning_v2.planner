@@ -231,7 +231,7 @@
       </task>
     </task>
     <task id="82" name="Software" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="83" name="Display, controls and telemetry" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+    <task id="83" name="Display, controls and telemetry" note="" work="172800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
       <task id="84" name="Research the subject (see evernote)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
       <task id="85" name="Message passing protocol for telemetry" note="Mon 13 Apr 2020, 11:41&#10;class devel and functionnalities for message passing.&#10;&#10;for telemetry only&#10;" work="115200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
         <task id="86" name="Software (class) developement" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
@@ -244,41 +244,39 @@
         <task id="91" name="Hardware developement" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
       </task>
       <task id="92" name="On board displays and controls using Nextion HMI" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="93" name="Off board telemetry display and control panel (see note for ideas)" note="Sun 24 Mar 2019, 12:08&#10;TFT display would be nice like Nextion.&#10;Watch videos from Andreas Spiess on this topic.&#10;&#10;TFT: can display and has touch control&#10;Needs editor on Windows&#10;One MicroSD card&#10;&#10;" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
     </task>
-    <task id="94" name="Sensors and peripherals" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-      <task id="95" name="Sensors" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-        <task id="96" name="Motor (Hall) sensors trough logic level shifter" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-        <task id="97" name="IR proximity sensor" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-          <task id="98" name="Hardware selection and testing (via Processing kvaIRproximityDetetionEvaluation)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-        </task>
-        <task id="99" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      </task>
-      <task id="100" name="Peripherals" note="" work="115200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-        <task id="101" name="RTC (Real Time Clock) (based on ZS-042)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-        <task id="102" name="SD data logger" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-          <task id="103" name="Hardware integration" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-          <task id="104" name="Log file format and naming convention" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-          <task id="105" name="Log contents" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-        </task>
+    <task id="93" name="Sensors" note="" work="230400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="94" name="Motor (Hall) sensors trough logic level shifter" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="95" name="IR Proximity Sensors -  Hardware selection and testing" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="96" name="MH Sensor Series - Flying-Fish" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="97" name="Waveshare IR Reflective Sensor" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="98" name="Pololu QTR-1A Reflectance Sensor" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="99" name="Pololu QTR-8RC Reflectance Sensor Array" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="100" name="LTR-559 Light &amp; Proximity Sensor" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="101" name="TinyLidar" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="102" name="Integration to KVA vehicule" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
       </task>
     </task>
-    <task id="106" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="107" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="108" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="103" name="Peripherals" note="" work="115200" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="104" name="RTC (Real Time Clock) (based on ZS-042)" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="105" name="SD data logger" note="" work="86400" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <task id="106" name="Hardware integration" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="107" name="Log file format and naming convention" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+        <task id="108" name="Log contents" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      </task>
+    </task>
     <task id="109" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
     <task id="110" name="Free" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="111" name="Operation manual" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
-      <task id="112" name="General description of KVA vehicule" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="113" name="Power supply - inserting batteries - using Venom Low Voltage Monitors" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="114" name="Modes of operations - descriptions" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="115" name="Controls local and remote - telemetry" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="116" name="Annexe A - bloc diagram of operation" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="117" name="Annexe B - pin assigment table" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-      <task id="118" name="Annexe C - spaces" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="111" name="Schematics" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="112" name="Operation manual" note="" work="201600" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="113" name="General description of KVA vehicule" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="114" name="Power supply - inserting batteries - using Venom Low Voltage Monitors" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="115" name="Modes of operations - descriptions" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="116" name="Controls local and remote - telemetry" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="117" name="Annexe A - bloc diagram of operation" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="118" name="Annexe B - pin assigment table" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="119" name="Annexe C - spaces" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
     </task>
-    <task id="119" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
-    <task id="120" name="" note="" work="28800" start="20181228T000000Z" end="20181228T170000Z" work-start="20181228T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
   </tasks>
   <resource-groups/>
   <resources>

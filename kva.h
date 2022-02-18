@@ -67,6 +67,7 @@ boolean opModeChangeAutorized{false}; // indicates that a change of opMode is au
 int motorSpeed_L = 0; // Motor Speed Values - Start at zero
 int motorSpeed_R = 0;
 #define MOTOR_LOWER_PWM_LIMIT 25 // to avoid buzzing
+#define EMERGENCY_SLOW 150 //emergency speed to get out of trouble
 
 // status for TELEOP mode
 int  PS2_config_result{254}; // controler never set = 254
@@ -108,7 +109,7 @@ PS2X ps2x; // create PS2 Controller Class object
 #define PS2X_CS  49 // chip select for PS2X controler
 //byte PS2_vibrate_level{0}; // no vibration
 
-/* FREE_RUN: Non Directed Autonomous Driving with Obstacle Collision Avoidance: 
+/* FREE_RUN: Autonomous Driving with Collision Avoidance: 
  *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
 */
 

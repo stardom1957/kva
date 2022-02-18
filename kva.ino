@@ -256,7 +256,6 @@ void motor_TELEOP_node_v1(void) {
     return;
   }
  
-  //ps2x.read_gamepad(false, PS2_vibrate_level);          //read controller and set large motor to spin at 'PS2_vibrate_level' speed
   ps2x.read_gamepad();
 
   //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
@@ -269,11 +268,10 @@ void motor_TELEOP_node_v1(void) {
    ps2x.ButtonPressed(PSB_RED)
    ps2x.ButtonReleased(PSB_PINK)
   */    
-    int emergency_slow {50};
     //slow forward
     if(ps2x.ButtonPressed(PSB_PAD_UP)){
-      motorLeftSet(emergency_slow, FORWARD);
-      motorRightSet(emergency_slow, FORWARD);
+      motorLeftSet(EMERGENCY_SLOW, FORWARD);
+      motorRightSet(EMERGENCY_SLOW, FORWARD);
     }
     if(ps2x.ButtonReleased(PSB_PAD_UP)){
       motorAllStop();
@@ -281,8 +279,8 @@ void motor_TELEOP_node_v1(void) {
 
     //slow reverse
     if(ps2x.ButtonPressed(PSB_PAD_DOWN)){
-      motorLeftSet(emergency_slow, REVERSE);
-      motorRightSet(emergency_slow, REVERSE);
+      motorLeftSet(EMERGENCY_SLOW, REVERSE);
+      motorRightSet(EMERGENCY_SLOW, REVERSE);
     }   
     if(ps2x.ButtonReleased(PSB_PAD_DOWN)){
       motorAllStop();
@@ -290,7 +288,7 @@ void motor_TELEOP_node_v1(void) {
 
     //slow left in place retation    
     if(ps2x.ButtonPressed(PSB_PAD_LEFT)){
-      vehiculeRotateLeft(emergency_slow);
+      vehiculeRotateLeft(EMERGENCY_SLOW);
     }
     if(ps2x.ButtonReleased(PSB_PAD_LEFT)) {
       motorAllStop();
@@ -298,7 +296,7 @@ void motor_TELEOP_node_v1(void) {
 
     //slow in place right rotation
     if(ps2x.ButtonPressed(PSB_PAD_RIGHT)){
-       vehiculeRotateRight(emergency_slow);
+       vehiculeRotateRight(EMERGENCY_SLOW);
     }
     if(ps2x.ButtonReleased(PSB_PAD_RIGHT)) {
       motorAllStop();
@@ -326,8 +324,7 @@ void motor_TELEOP_node_v1(void) {
    Do this by reading the Verticle Value Y
    Apply results to MotorSpeed and to Direction
 */
-   if (ps2RY >= (127 + atRestZone))
-   {
+   if (ps2RY >= (127 + atRestZone)) {
      // This is reverse
      leftMotorDirection = REVERSE;
      rightMotorDirection = REVERSE;
@@ -337,10 +334,9 @@ void motor_TELEOP_node_v1(void) {
 
      motorSpeed_L = map(ps2RY, (127 + atRestZone), 255, 0, 255);
      motorSpeed_R = map(ps2RY, (127 + atRestZone), 255, 0, 255);
-  }
+   }
   
-  else if (ps2RY <= (127 - atRestZone))
-  {
+  else if (ps2RY <= (127 - atRestZone)) {
     // This is Forward
      leftMotorDirection = FORWARD;
      rightMotorDirection = FORWARD;
@@ -352,8 +348,7 @@ void motor_TELEOP_node_v1(void) {
     motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
 
   }
-  else
-  {
+  else {
     // the stick is in the middle rest zone, so this is Stopped
 
     motorSpeed_L = 0;
@@ -646,4 +641,3 @@ void loop()
 }
 //endif for COMPILE_MAIN
 #endif
-
