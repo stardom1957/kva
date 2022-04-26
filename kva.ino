@@ -18,7 +18,27 @@ History, see kva_history.h tab
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
+
 #define TELEMETRY               // compile telemetry code
+
+// definition of debug levels
+// mainly replacing Serial.print and Serial.println by notting when not needed
+// that is DEBUG == 0
+
+#define DEBUG 0 // 1 is debug 0 is not
+
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debug_2arg(x, y) Serial.print(x, y)
+#define debugln(x) Serial.println(x)
+#define debugln_2arg(x, y) Serial.print(x, y)
+
+#else
+#define debug(x)
+#define debug_2arg(x, y)
+#define debugln(x)
+#define debugln_2arg(x, y)
+#endif
 
 #include <DueTimer.h>
 #include <PS2X_lib.h>  //revised library from KurtE from Github
@@ -204,27 +224,27 @@ void set_ps2x(void) {
  PS2_config_result = ps2x.config_gamepad(SPI_CLK, SPI_MOSI, PS2X_CS, SPI_MISO, true, true);
  
  if(PS2_config_result == 0){
-   Serial.println("Found Controller, configured successful");
+   debugln("Found Controller, configured successful");
  }
    
   else if(PS2_config_result == 1)
-   Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
+   debugln("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
    
   else if(PS2_config_result == 2)
-   Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
+   debugln("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
    
   else if(PS2_config_result == 3)
-   Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+   debugln("Controller refusing to enter Pressures mode, may not support it. ");
    
-   //Serial.print(ps2x.Analog(1), HEX);
+   //debugln__2arg(ps2x.Analog(1), HEX);
    
    PS2_type = ps2x.readType(); 
      switch(PS2_type) {
        case 0:
-        Serial.println("Unknown Controller PS2_type");
+        debugln("Unknown Controller PS2_type");
        break;
        case 1:
-        Serial.println("DualShock Controller Found");
+        debugln("DualShock Controller Found");
        break;
      }
 }
@@ -241,7 +261,7 @@ void motor_TELEOP_node_v1(void) {
   const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
   
   if(PS2_config_result == 254) { //try to setup controler up to 10 times
-   // debug Serial.println("Setting controler...");
+   // debug debugln("Setting controler...");
    byte sc;
    for (sc=0; sc<10; sc++) {
      set_ps2x();
@@ -259,46 +279,43 @@ void motor_TELEOP_node_v1(void) {
   ps2x.read_gamepad();
 
   //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
-    
-  /*
-   PSB_PAD_UP      0x0010
-   PSB_PAD_RIGHT   0x0020
-   PSB_PAD_DOWN    0x0040
-   PSB_PAD_LEFT    0x0080
-   ps2x.ButtonPressed(PSB_RED)
-   ps2x.ButtonReleased(PSB_PINK)
-  */    
+/*
+#define PSB_TRIANGLE    0x1000
+#define PSB_CIRCLE      0x2000
+#define PSB_CROSS       0x4000
+#define PSB_SQUARE      0x8000
+  */  
     //slow forward
-    if(ps2x.ButtonPressed(PSB_PAD_UP)){
+    if(ps2x.ButtonPressed(PSB_TRIANGLE)){
       motorLeftSet(EMERGENCY_SLOW, FORWARD);
       motorRightSet(EMERGENCY_SLOW, FORWARD);
     }
-    if(ps2x.ButtonReleased(PSB_PAD_UP)){
+    if(ps2x.ButtonReleased(PSB_TRIANGLE)){
       motorAllStop();
     }
 
     //slow reverse
-    if(ps2x.ButtonPressed(PSB_PAD_DOWN)){
+    if(ps2x.ButtonPressed(PSB_CROSS)){
       motorLeftSet(EMERGENCY_SLOW, REVERSE);
       motorRightSet(EMERGENCY_SLOW, REVERSE);
     }   
-    if(ps2x.ButtonReleased(PSB_PAD_DOWN)){
+    if(ps2x.ButtonReleased(PSB_CROSS)){
       motorAllStop();
     }
 
-    //slow left in place retation    
-    if(ps2x.ButtonPressed(PSB_PAD_LEFT)){
+    //slow left in place rotation    
+    if(ps2x.ButtonPressed(PSB_SQUARE)){
       vehiculeRotateLeft(EMERGENCY_SLOW);
     }
-    if(ps2x.ButtonReleased(PSB_PAD_LEFT)) {
+    if(ps2x.ButtonReleased(PSB_SQUARE)) {
       motorAllStop();
     }
 
     //slow in place right rotation
-    if(ps2x.ButtonPressed(PSB_PAD_RIGHT)){
+    if(ps2x.ButtonPressed(PSB_CIRCLE)){
        vehiculeRotateRight(EMERGENCY_SLOW);
     }
-    if(ps2x.ButtonReleased(PSB_PAD_RIGHT)) {
+    if(ps2x.ButtonReleased(PSB_CIRCLE)) {
       motorAllStop();
     }
 
@@ -313,9 +330,9 @@ void motor_TELEOP_node_v1(void) {
     ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
 
 /* debug
-    Serial.print(ps2RX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
-    Serial.print(",");
-    Serial.println(ps2RY, DEC); 
+    debug(ps2RX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
+    debug(",");
+    debugln__2arg(ps2RY, DEC); 
 */
 /* PSS_RY determines if this is a forward or reverse motion
    FORWARD is PSS_RY <= (127 - atRestZone)
@@ -418,7 +435,7 @@ void run_preset_course(void) {
   motorRightSet(200, FORWARD);
   delay(4000);
   motorAllStop();
-  Serial.println("Both motors STOPTED for 3s");
+  Serial.println("Both motors STOPED for 3s");
   delay(3000);
   Serial.println("Both motors REVERSE for 4s");
   motorLeftSet(200, REVERSE);
@@ -458,18 +475,18 @@ void measureAndCalibrateMotors(void) {
   motorAllStop();
      
   // display results on Serial Monitor
-   Serial.print("encoderTimerLoopCount= ");
+  debug("encoderTimerLoopCount= ");
   Serial.println(encoderTimerLoopCount, DEC);
   Serial.println("---------------------------");
-  Serial.print("deltaCount_L= ");
+  debug("deltaCount_L= ");
   Serial.println(deltaCount_L, DEC);
-  Serial.print("deltaCount_R= ");
+  debug("deltaCount_R= ");
   Serial.println(deltaCount_R, DEC);
 
   Serial.println("--------TOTALS------------\n");
-  Serial.print("S1_L_count= ");
+  debug("S1_L_count= ");
   Serial.println(S1_L_count, DEC);
-  Serial.print("S1_R_count= ");
+  debug("S1_R_count= ");
   Serial.println(S1_R_count, DEC);
 
   Serial.println("End of motor measure program.");
@@ -626,7 +643,7 @@ void setup()
   kva_rtc_init(); // starts RTC
   #endif
 
-  //debug Serial.println("Setup finished\n");
+  debugln("Setup finished\n");
   digitalWrite(YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   digitalWrite(SYSTEM_READY_LED, HIGH); // now system is ready
 }

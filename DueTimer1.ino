@@ -51,13 +51,13 @@ volatile unsigned long S1_L_count {0};          // running count for Hall sensor
 volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
 volatile unsigned long deltaCount_L             // number of counts for Hall sensor S1, left motor for measuring period
 */    
-     Serial.print("encoderTimerLoopCount= ");
-     Serial.println(encoderTimerLoopCount, DEC);
+     debug("encoderTimerLoopCount= ");
+     debugln__2arg(encoderTimerLoopCount, DEC);
      Serial.println("---------------------------");
-     Serial.print("deltaCount_L= ");
-     Serial.println(deltaCount_L, DEC);
-     Serial.print("deltaCount_R= ");
-     Serial.println(deltaCount_R, DEC);
+     debug("deltaCount_L= ");
+     debugln__2arg(deltaCount_L, DEC);
+     debug("deltaCount_R= ");
+     debugln__2arg(deltaCount_R, DEC);
 
 //     encoderTimer.stop();
 //     motorAllStop();

@@ -24,6 +24,6 @@ void loop(){
   myTimer.stop();
   timesUp=false;
   ++t;
-  Serial.println(t, DEC);
+  debugln__2arg(t, DEC);
 }
 #endif

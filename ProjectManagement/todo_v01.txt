@@ -1,0 +1,19 @@
+to do
+1. Issue 2.13.2. motor speed should be set from 1 to 10
+
+2. Issue 5.1.1 #defines on branch «definitions_for_debugs» DONE
+
+3. Issue 6.2.3 Simple messages Tx for debugs trought telemetry
+
+4. Issue 2.5.10 TELEOP using simple commands trough telemetry (Xbee)
+
+5. Nextion devel is on laptop. copy on kva and document using print screens
+
+6.
+
+Priority order
+--------------
+
+1
+
+

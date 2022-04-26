@@ -43,7 +43,7 @@ void set_ps2x(void) {
   else if(PS2_config_result == 3)
    Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
    
-   //Serial.print(ps2x.Analog(1), HEX);
+   //debug(ps2x.Analog(1), HEX);
    
    PS2_type = ps2x.readType(); 
      switch(PS2_type) {
@@ -97,23 +97,23 @@ void loop(){
          
          
     if(ps2x.Button(PSB_PAD_UP)) {         //will be TRUE as long as button is pressed
-      Serial.print("Up held this hard: ");
-      Serial.println(ps2x.Analog(PSAB_PAD_UP), DEC);
+      debug("Up held this hard: ");
+      debugln__2arg(ps2x.Analog(PSAB_PAD_UP), DEC);
     }
     
     if(ps2x.Button(PSB_PAD_RIGHT)){
-       Serial.print("Right held this hard: ");
-       Serial.println(ps2x.Analog(PSAB_PAD_RIGHT), DEC);
+       debug("Right held this hard: ");
+       debugln__2arg(ps2x.Analog(PSAB_PAD_RIGHT), DEC);
     }
     
     if(ps2x.Button(PSB_PAD_LEFT)){
-      Serial.print("LEFT held this hard: ");
-      Serial.println(ps2x.Analog(PSAB_PAD_LEFT), DEC);
+      debug("LEFT held this hard: ");
+      debugln__2arg(ps2x.Analog(PSAB_PAD_LEFT), DEC);
     }
     
     if(ps2x.Button(PSB_PAD_DOWN)){
-      Serial.print("DOWN held this hard: ");
-      Serial.println(ps2x.Analog(PSAB_PAD_DOWN), DEC);
+      debug("DOWN held this hard: ");
+      debugln__2arg(ps2x.Analog(PSAB_PAD_DOWN), DEC);
     }   
     
     //PS2_vibrate_level = ps2x.Analog(PSAB_BLUE);        //this will set the large motor PS2_vibrate_level speed based on 
@@ -148,14 +148,14 @@ void loop(){
     
     if(ps2x.Button(PSB_L1) || ps2x.Button(PSB_R1)) // print stick values if either is TRUE
     {
-        Serial.print("Stick Values:");
-        Serial.print(ps2x.Analog(PSS_LX), DEC); //Left stick, Y axis. Other options: LX, RY, RX  
-        Serial.print(",");
-        Serial.println(ps2x.Analog(PSS_LY), DEC); 
-        //Serial.print(",");
-        //Serial.print(ps2x.Analog(PSS_RY), DEC); 
-        //Serial.print(",");
-        //Serial.println(ps2x.Analog(PSS_RX), DEC); 
+        debug("Stick Values:");
+        debug(ps2x.Analog(PSS_LX), DEC); //Left stick, Y axis. Other options: LX, RY, RX  
+        debug(",");
+        debugln__2arg(ps2x.Analog(PSS_LY), DEC); 
+        //debug(",");
+        //debug(ps2x.Analog(PSS_RY), DEC); 
+        //debug(",");
+        //debugln__2arg(ps2x.Analog(PSS_RX), DEC); 
     } 
  }
  delay(50);

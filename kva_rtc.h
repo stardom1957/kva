@@ -45,15 +45,15 @@ void kva_rtc_init(void) {
     // if year==2000, the RTC has probably lost power
     now = rtc.now();
     if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
-    //Serial.print("debug year= ");
+    //debug("debug year= ");
     //Serial.println(now.year());
     
     if (!rtcInitialized) {
       // set the RTC to the date & time this sketch was compiled
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-      Serial.print("RTC set to compile time: ");
-      Serial.print(F(__DATE__));
-      Serial.print(" ");
+      debug("RTC set to compile time: ");
+      debug(F(__DATE__));
+      debug(" ");
       Serial.println(F(__TIME__));
       rtcInitialized = true;
     }
