@@ -23,7 +23,7 @@
      A message is constructed from a Topic class where all members are converted
      to a series of strings.
      
-     The . are made fromsent/received as Strings from the original
+     The . are made from sent/received as Strings from the original
      data types by the sender. The (type) provided can be used for data
      conversions if used other than for display, i.e. calculations. See
      paragraph C.
@@ -132,7 +132,7 @@ class Topic {
   char dataType;
   byte priority;
 
- Topic(void) {priority = 0;}
+  Topic(void) {priority = 0;}
 
  void createTopic(byte tID, String dat, char typ, byte prio) {
   topicID = tID;
@@ -146,7 +146,7 @@ class Topic {
   priority = 0; // indicates message has been processed / sent
                 // witch also indicates that the object os free
  }
-};
+}; // end class Topic
 
 // assemble a complete message (for telemetry) from a Topic
 String assembleMessage(Topic t) {
@@ -234,5 +234,5 @@ void sendTelemetry(byte port) {
  return;
 }
 
-#endif //TELEMETRY
+#endif //if defined TELEMETRY
 #endif

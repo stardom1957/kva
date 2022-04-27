@@ -6,20 +6,12 @@ History, see kva_history.h tab
 #ifndef COMPILE_MAIN
 #define COMPILE_MAIN
 #endif
-
-//#define DUE_TIMER_TEST0 // developpement test only, see DueTimer0 tab
-//#define DUE_TIMER_TEST1 // developpement test only, see DueTimer1 tab
-//#define COMPILE_PS2EXAMPLE // developpement test only
 #define RTC_COMPILE
-
-//************************************************
-
 #ifdef COMPILE_MAIN
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
-
-#define TELEMETRY               // compile telemetry code
+//#define TELEMETRY               // compile telemetry code
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by notting when not needed
@@ -53,26 +45,25 @@ History, see kva_history.h tab
 
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) { // display interval
-     //#TODO set SYSTEM_READY_LED according to system status
+     //#TODO set LED_GREEN_SYSTEM_READY according to system status
      //check RTC status
      //check other status
      //yellow LED on if any adverse condition occur
 
-     if (!rtcFound || !hmiFound) digitalWrite(YELLOW_ALERT_CONDITION, HIGH);
+     if (!rtcFound || !hmiFound) digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
      
     /* #TODO what to do with these
      !rtcInitialized
      rtcFound
     */
    
-   // update message overflow LED on vehicule
-/*
+   // update LED_YELLOW_ALERT_CONDITION on vehicule
    #ifdef TELEMETRY
    if (currentTopic == maxNbrTopics) {
-     digitalWrite(YELLOW_ALERT_CONDITION, HIGH);
-   } else {digitalWrite(YELLOW_ALERT_CONDITION, LOW);}
+     digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+   } else {digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);}
    #endif
-*/
+
    // display status according to currently selected status page
    switch (currentHMIpage) {
     case 0:
@@ -593,11 +584,11 @@ void setGPIOs(void) {
   pinMode(S2motorEncoder_R_PIN,INPUT);
 
  // indicators, controls and displays
-  pinMode(YELLOW_ALERT_CONDITION, OUTPUT);
-  pinMode(SYSTEM_READY_LED, OUTPUT);
+  pinMode(LED_YELLOW_ALERT_CONDITION, OUTPUT);
+  pinMode(LED_GREEN_SYSTEM_READY, OUTPUT);
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
-  digitalWrite(SYSTEM_READY_LED, LOW);  // system not ready
-  digitalWrite(YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
+  digitalWrite(LED_GREEN_SYSTEM_READY, LOW);  // system not ready
+  digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
 }
 
 
@@ -644,8 +635,8 @@ void setup()
   #endif
 
   debugln("Setup finished\n");
-  digitalWrite(YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
-  digitalWrite(SYSTEM_READY_LED, HIGH); // now system is ready
+  digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
+  digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
 }
 
 void loop()
