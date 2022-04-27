@@ -45,8 +45,8 @@ void kva_rtc_init(void) {
     // if year==2000, the RTC has probably lost power
     now = rtc.now();
     if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
-    //debug("debug year= ");
-    //Serial.println(now.year());
+    debug("debug year= ");
+    debugln(now.year());
     
     if (!rtcInitialized) {
       // set the RTC to the date & time this sketch was compiled
@@ -54,11 +54,11 @@ void kva_rtc_init(void) {
       debug("RTC set to compile time: ");
       debug(F(__DATE__));
       debug(" ");
-      Serial.println(F(__TIME__));
+      debugln(F(__TIME__));
       rtcInitialized = true;
     }
   }
-  //debug Serial.println(strDateTime(true));
+  debugln(strDateTime(true));
 }
 #endif //RTC_COMPILE
 #endif

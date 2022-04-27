@@ -20,7 +20,7 @@ History, see kva_history.h tab
 // mainly replacing Serial.print and Serial.println by notting when not needed
 // that is DEBUG == 0
 
-#define DEBUG 0 // 1 is debug 0 is not
+#define DEBUG 1 // 1 is debug 0 is not
 
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
@@ -49,7 +49,7 @@ History, see kva_history.h tab
 #include "kva_hmi.h" // for HMI display and control
 
 void updateDisplayAndIndicators(void) {
- if ((millis() - displayTimer) > displayInterval) { // display interval
+ if ((millis() - displayTimer) > displayInterval) {
      //#TODO set LED_GREEN_SYSTEM_READY according to system status
      //check RTC status
      //check other status
@@ -61,7 +61,12 @@ void updateDisplayAndIndicators(void) {
      !rtcInitialized
      rtcFound
     */
-   
+    now = rtc.now();
+    //if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
+    debug("from updateDisplayAndIndicators");
+    debug("debug year= ");
+    debugln(now.year());
+
    // update LED_YELLOW_ALERT_CONDITION on vehicule
    #ifdef TELEMETRY
    if (currentTopic == maxNbrTopics) {
@@ -69,10 +74,13 @@ void updateDisplayAndIndicators(void) {
    } else {digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);}
    #endif
 
+   // ###########################################################
+   // HMI control
    // display status according to currently selected status page
    switch (currentHMIpage) {
     case 0:
-      // display topicsOverflow on page 0 on HMI **************
+      // this page 0; status page
+      // display topicsOverflow **************
       //debug
       #ifdef TELEMETRY
       topicsOverflow = random(100); //debug
@@ -85,18 +93,26 @@ void updateDisplayAndIndicators(void) {
      
       if (topicsOverflow > 100) { topicsOverflow = 100; }
       jbuffstat.setValue(topicsOverflow);
-     #endif
+     #end ifdef TELEMETRY
      
-     // display current opMode on HMI **************
+     // update current opMode on HMI **************
      memset(char_buffer, 0, sizeof(char_buffer));
      strToChar(currentOpModeName); // mode name converted to chr in char_buffer
      topmode.setText(char_buffer);
 
+     // todo update RTC status indicator
+     // RTC background color GREEN or RED
+
     break;
 
     case 1:
+      // this is page 1; opmode selection
       // #TODO: ???
     break;
+
+    case 2:
+      // this is the RTC page
+      // update all fields
 
     default:
     break;

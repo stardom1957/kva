@@ -9,11 +9,15 @@ branch motor_1_to_10 merged to master and deleted
 4. Issue 2.5.10 TELEOP using simple commands trough telemetry (Xbee)
 
 5. Nextion devel is on laptop. copy on kva and document using print screens
+   This is project 23 in sketches binder
 
-6.
+6. HMI has some issues: branch debug_hmi
+ 6.1 page 1 only update comming from page 0 (ok from page 2)
+ 6.2 page 2 (RTC) fields from RTC do not update, check RTC status first
+ 6.3 // page changes callbacks, order by page number : is page 0 missing?
 
 Priority order
 --------------
 
-1
+6.
 

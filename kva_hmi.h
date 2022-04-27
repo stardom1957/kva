@@ -3,7 +3,8 @@
 
 /**
  Notes:
- 1.  modification to nexConfig.h see #define nextSerial ...
+ 1. modified nexConfig.h: #define nexSerial Serial2 for Serial2 on Due
+ 2. for debugging, nexConfig.h: uncomment #define DEBUG_SERIAL_ENABLE
  
  */
 
@@ -27,7 +28,7 @@ NexPage page2    = NexPage(2, 0, "page2"); // set RTC page
 NexText topmode  =                NexText(0, 4, "topmode");    // displays current opMode
 NexProgressBar jbuffstat = NexProgressBar(0, 5, "jbuffstat");  // displays progress bar for message buffer status
 
-// main menu buttons components repeat on each page
+// menu buttons components repeat on each page
 // note: all page change are handled by HMI, so no callback function required!
 NexDSButton bstat1 =              NexDSButton(1, 4, "bstat1"); // page 1 button to status 0 CALLBACK REQUIRED
 NexDSButton bstat2 =              NexDSButton(2, 1, "bstat2"); // page 2 button to status page 0 CALLBACK REQUIRED
@@ -87,29 +88,74 @@ byte currentHMIpage{0};                  // the page the HMi is currently showin
 
 //***************************************
 //***************************************
+// page changes callbacks
 
-// page change callback in order to get currentHMIpage
-// change to page 0
+// on page 0, button brtc0 pressed, page 2 requested
+// page 2 is RTC setup
+void brtc0PopCallback(void *ptr) {
+  dbSerialPrintln("brtc0PopCallback");
+  currentHMIpage = 2;
+  // if rtc is ok send actual date and time values to HMI number fields
+  if (rtcFound) {
+    updateDTtoHMI();
+    debugln("calling updateDTtoHMI");
+  }
+   else {
+    debugln("unable to update RCT: device not found");
+   }
+}
+
+// on page 0, button bop0 pressed, page 1 requested
+// page 1 is opmode change
+void bop0PopCallback(void *ptr) {
+  dbSerialPrintln("bop0PopCallback");
+  currentHMIpage = 1;
+  setOpmodeButtonColors(); // set opmode btn color according to current opmode
+}
+
+// on page 1, button bstat1 pressed, page 0 requested
+// page 0 is status
 void bstat1PopCallback(void *ptr) {
   dbSerialPrintln("bstat1PopCallback");
   currentHMIpage = 0;
 }
 
+// on page 2 button brtc1 pressed, page 2 requested
+// page 2 is RTC setup
+void brtc1PopCallback(void *ptr) {
+  dbSerialPrintln("brtc1PopCallback");
+  currentHMIpage = 2;
+  // if rtc is ok send actual date and time values to HMI number fields
+  if (rtcFound) updateDTtoHMI();
+}
+
+
+// on page 2, button bstat2 pressed, page 0 requested
+// page 0 is status
 void bstat2PopCallback(void *ptr) {
   dbSerialPrintln("bstat2PopCallback");
   currentHMIpage = 0;
 }
 
+// on page 2, button bop2 pressed, page 1 requested
+// page 1 is opmode change
+void bop2PopCallback(void *ptr) {
+  dbSerialPrintln("bop2PopCallback");
+  currentHMIpage = 1;
+  setOpmodeButtonColors(); // set opmode btn color according to current opmode
+}
+
 /*
  * this will ajust the color of each mode select buttons
  * according to the situation of the mode selection variables
- * IMPORTANT NOTE: upon entering the page for opmode selection, all btn are set to GREY
+ * IMPORTANT NOTE: on the HMI, upon entering the page for opmode selection, all btn are set to GREY
  * so that we only have to do 2 passes
 */
  
 void setOpmodeButtonColors(void) {
   // first pass: set color of button of current opMode to green
   switch(currentOpMode) {
+    debugln("in setOpmodeButtonColors, first pass");
     //**********************************************
     //***************** STANDBY *******************
     case STANDBY:
@@ -141,12 +187,12 @@ void setOpmodeButtonColors(void) {
     
     default:
      ;
-  }
-
+  } // end switch(currentOpMode)
 
   // if opModeChangeRequested do a second pass to set color
   // of button of requested opMode to yellow
   if (opModeChangeRequested) {
+    debugln("in setOpmodeButtonColors, second pass");
     switch(requestedOpMode) {
       //**********************************************
       //***************** STANDBY *******************
@@ -270,21 +316,6 @@ void setRTCfromInput(void) {
   }
 }
 
-
-// change to page 1 from page 0
-void bop0PopCallback(void *ptr) {
-  dbSerialPrintln("bop0PopCallback");
-  currentHMIpage = 1;
-  setOpmodeButtonColors(); // set opmode btn color according to situation
-}
-
-// change to page 1 from page 2
-void bop2PopCallback(void *ptr) {
-  dbSerialPrintln("bop2PopCallback");
-  currentHMIpage = 1;
-  setOpmodeButtonColors(); // set opmode btn color according to situation
-}
-
 // gets date and time from RTC and set corresponding fields on page
 void updateDTtoHMI(void) {
     now = rtc.now();
@@ -305,22 +336,6 @@ void updateDTtoHMI(void) {
     delay(del);
     nsec.setValue(now.second());
     delay(del);
-}
-
-// change to page 2 from page 0
-void brtc0PopCallback(void *ptr) {
-  dbSerialPrintln("brtc0PopCallback");
-  currentHMIpage = 2;
-  // if rtc is ok send actual date and time values to HMI number fields
-  if (rtcFound) updateDTtoHMI();
-}
-
-// change to page 2 from page 1
-void brtc1PopCallback(void *ptr) {
-  dbSerialPrintln("brtc1PopCallback");
-  currentHMIpage = 2;
-  // if rtc is ok send actual date and time values to HMI number fields
-  if (rtcFound) updateDTtoHMI();
 }
 
 // add +5|+1 to currently RTC selected field on page 2
@@ -588,10 +603,10 @@ void bfrunPopCallback(void *ptr)
 // manages change of opMode
 void manageOpModeChange(void) {
   if (opModeChangeRequested && opModeChangeAutorized) {
-   dbSerialPrintln("manageOpModeChange");
+   dbSerialPrintln("in manageOpModeChange");
    dbSerialPrintln("  ");
    currentOpMode = requestedOpMode;
-   dbSerialPrintln("debug requestedOpMode: ");
+   dbSerialPrintln("debug requestedOpMode, value is: ");
    dbSerialPrintln(requestedOpMode);
    opModeChangeRequested = false;
    opModeChangeAutorized = false;
