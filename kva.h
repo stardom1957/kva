@@ -2,16 +2,6 @@
 #define _kva_h 
 
 //functions prototypes
-void ISR_timerEncoder();
-void ISR_S1_L();
-void ISR_S1_R();
-void motorRightSet();
-void vehiculeRotateRight();
-void vehiculeRotateLeft();
-void motorLeftSet();
-void motorRightStop();
-void motorLeftStop();
-void motorAllStop();
 void set_ps2x();
 void motor_TELEOP_node_v1();
 void run_preset_course(void);
