@@ -52,8 +52,8 @@ void setRTCfromInput(void);
 //*****************************************************************
 //***STATUS*****STATUS*****STATUS*****STATUS*****STATUS*****STATUS*
 
-#define YELLOW_ALERT_CONDITION 53
-#define SYSTEM_READY_LED 52
+#define LED_YELLOW_ALERT_CONDITION 53
+#define LED_GREEN_SYSTEM_READY 52
 
 // *** STATUS FOR OPMODE CONTROL
 byte currentOpMode;                   // operation mode
