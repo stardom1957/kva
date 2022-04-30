@@ -3,12 +3,10 @@ History, see kva_history.h tab
  */
 
 // ************** Compile directives
-#ifndef COMPILE_MAIN
 #define COMPILE_MAIN
-#endif
 #define RTC_COMPILE
 #define MOTOR_CONTROL_COMPILE
-#define SENSORS
+#define SENSORS_COMPILE
 
 #ifdef COMPILE_MAIN
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
@@ -26,7 +24,7 @@ History, see kva_history.h tab
 #define debug(x) Serial.print(x)
 #define debug_2arg(x, y) Serial.print(x, y)
 #define debugln(x) Serial.println(x)
-#define debugln_2arg(x, y) Serial.print(x, y)
+#define debugln_2arg(x, y) Serial.println(x, y)
 
 #else
 #define debug(x)
@@ -48,295 +46,8 @@ History, see kva_history.h tab
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
 
-void updateDisplayAndIndicators(void) {
- if ((millis() - displayTimer) > displayInterval) {
-     //#TODO set LED_GREEN_SYSTEM_READY according to system status
-     //check RTC status
-     //check other status
-     //yellow LED on if any adverse condition occur
 
-     if (!rtcFound || !hmiFound) digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
-     
-    /* #TODO what to do with these
-     !rtcInitialized
-     rtcFound
-    */
-    now = rtc.now();
-    //if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
-    debug("from updateDisplayAndIndicators");
-    debug("debug year= ");
-    debugln(now.year());
-
-   // update LED_YELLOW_ALERT_CONDITION on vehicule
-   #ifdef TELEMETRY
-   if (currentTopic == maxNbrTopics) {
-     digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
-   } else {digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);}
-   #endif
-
-   // ###########################################################
-   // HMI control
-   // display status according to currently selected status page
-   switch (currentHMIpage) {
-    case 0:
-      // this page 0; status page
-      // display topicsOverflow **************
-      //debug
-      #ifdef TELEMETRY
-      topicsOverflow = random(100); //debug
-      if (topicsOverflow > 70) {
-       jbuffstat.Set_font_color_pco(RED);
-      }
-      else {
-        jbuffstat.Set_font_color_pco(GREEN); // green
-      }
-     
-      if (topicsOverflow > 100) { topicsOverflow = 100; }
-      jbuffstat.setValue(topicsOverflow);
-     #end ifdef TELEMETRY
-     
-     // update current opMode on HMI **************
-     memset(char_buffer, 0, sizeof(char_buffer));
-     strToChar(currentOpModeName); // mode name converted to chr in char_buffer
-     topmode.setText(char_buffer);
-
-     // todo update RTC status indicator
-     // RTC background color GREEN or RED
-
-    break;
-
-    case 1:
-      // this is page 1; opmode selection
-      // #TODO: ???
-    break;
-
-    case 2:
-      // this is the RTC page
-      // update all fields
-
-    default:
-    break;
-   }
-   displayTimer = millis();
- } // check display timer
-}
-
-
-/* this function implement the TELEOP mode: the vehicule movement is fully controled by a remote operator using a Ps2 type controler. 
- *  This mode doesn't provide for any type of collision avoidance.
-
-*/
-
-//***************** PS2 controler setting function
-void set_ps2x(void) {
- digitalWrite(PS2X_CS, LOW); // select controler for action
- //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for PS2_config_result
- PS2_config_result = ps2x.config_gamepad(SPI_CLK, SPI_MOSI, PS2X_CS, SPI_MISO, true, true);
- 
- if(PS2_config_result == 0){
-   debugln("Found Controller, configured successful");
- }
-   
-  else if(PS2_config_result == 1)
-   debugln("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
-   
-  else if(PS2_config_result == 2)
-   debugln("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
-   
-  else if(PS2_config_result == 3)
-   debugln("Controller refusing to enter Pressures mode, may not support it. ");
-   
-   //debugln__2arg(ps2x.Analog(1), HEX);
-   
-   PS2_type = ps2x.readType(); 
-     switch(PS2_type) {
-       case 0:
-        debugln("Unknown Controller PS2_type");
-       break;
-       case 1:
-        debugln("DualShock Controller Found");
-       break;
-     }
-}
-
-
-//********************************************
-//***************** TELEOP *******************
-
-void motor_TELEOP_node_v1(void) {
-  byte leftMotorDirection;
-  byte rightMotorDirection;
-  int ps2RY; //we are using the right hand joystick
-  int ps2RX;  
-  const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
-  
-  if(PS2_config_result == 254) { //try to setup controler up to 10 times
-   // debug debugln("Setting controler...");
-   byte sc;
-   for (sc=0; sc<10; sc++) {
-     set_ps2x();
-     if (PS2_config_result == 0) break;
-     delay(50);
-   }
-  }
-
-  // if no controler was found on last run, then ensure we will attempt to setup controler in next run
-  if (PS2_config_result != 0 || PS2_type != 1) {
-    PS2_config_result == 254;
-    return;
-  }
- 
-  ps2x.read_gamepad();
-
-  //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
-/*
-#define PSB_TRIANGLE    0x1000
-#define PSB_CIRCLE      0x2000
-#define PSB_CROSS       0x4000
-#define PSB_SQUARE      0x8000
-  */  
-    //slow forward
-    if(ps2x.ButtonPressed(PSB_TRIANGLE)){
-      motorLeftSet(EMERGENCY_SLOW, FORWARD);
-      motorRightSet(EMERGENCY_SLOW, FORWARD);
-    }
-    if(ps2x.ButtonReleased(PSB_TRIANGLE)){
-      motorAllStop();
-    }
-
-    //slow reverse
-    if(ps2x.ButtonPressed(PSB_CROSS)){
-      motorLeftSet(EMERGENCY_SLOW, REVERSE);
-      motorRightSet(EMERGENCY_SLOW, REVERSE);
-    }   
-    if(ps2x.ButtonReleased(PSB_CROSS)){
-      motorAllStop();
-    }
-
-    //slow left in place rotation    
-    if(ps2x.ButtonPressed(PSB_SQUARE)){
-      vehiculeRotateLeft(EMERGENCY_SLOW);
-    }
-    if(ps2x.ButtonReleased(PSB_SQUARE)) {
-      motorAllStop();
-    }
-
-    //slow in place right rotation
-    if(ps2x.ButtonPressed(PSB_CIRCLE)){
-       vehiculeRotateRight(EMERGENCY_SLOW);
-    }
-    if(ps2x.ButtonReleased(PSB_CIRCLE)) {
-      motorAllStop();
-    }
-
-  
-  //**************** JOYSTICK OPERATION ********************************************
-  //****************** all buttons are read only if button PSB_L1 is held pressed
-  //****************** this is the dead man's grip
-  if(ps2x.Button(PSB_L1)) {
-
-    // reading the right stick values
-    ps2RX = ps2x.Analog(PSS_RX); //Raw right stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
-    ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
-
-/* debug
-    debug(ps2RX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
-    debug(",");
-    debugln__2arg(ps2RY, DEC); 
-*/
-/* PSS_RY determines if this is a forward or reverse motion
-   FORWARD is PSS_RY <= (127 - atRestZone)
-   REVERSE is PSS_RY >= (127 + atRestZone)
-   
-   Do this by reading the Verticle Value Y
-   Apply results to MotorSpeed and to Direction
-*/
-   if (ps2RY >= (127 + atRestZone)) {
-     // This is reverse
-     leftMotorDirection = REVERSE;
-     rightMotorDirection = REVERSE;
-
-     //motor speeds is determined from stick values ps2RY
-     // we need to map the reading from 0 to 255
-
-     motorSpeed_L = map(ps2RY, (127 + atRestZone), 255, 0, 255);
-     motorSpeed_R = map(ps2RY, (127 + atRestZone), 255, 0, 255);
-   }
-  
-  else if (ps2RY <= (127 - atRestZone)) {
-    // This is Forward
-     leftMotorDirection = FORWARD;
-     rightMotorDirection = FORWARD;
-
-    //motor speeds is determined from stick values ps2RY
-    //we need to map reading from 0 to 255
-
-    motorSpeed_L = map(ps2RY, (127 - atRestZone), 0, 0, 255);
-    motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
-
-  }
-  else {
-    // the stick is in the middle rest zone, so this is Stopped
-
-    motorSpeed_L = 0;
-    motorSpeed_R = 0; 
-
-  }
-  
-  // Now do the steering
-  // The Horizontal position X will "weigh" the motor speed
-  // Values for each motor
-
-   // PSS_LX determines the steering direction
-   // LEFT  is PSS_LX <= (128 - atRestZone)
-   // RIGHT is PSS_LX >= (128 + atRestZone)
-
-  if (ps2RX <= (128 - atRestZone)) {
-    // We move to the left
-    // Map the number to a value of 255 maximum
-
-    ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
-        
-
-    motorSpeed_L = motorSpeed_L - ps2RX;
-    motorSpeed_R = motorSpeed_R + ps2RX;
-
-    // Don't exceed range of 0-255 for motor speeds
-
-    if (motorSpeed_L < 0) motorSpeed_L = 0;
-    if (motorSpeed_R > 255) motorSpeed_R = 255;
-  }
-    else if (ps2RX >= (128 + atRestZone)) {
-    // we move to the right
-    // Map the number to a value of 255 maximum
-
-      ps2RX = map(ps2RX, (128 + atRestZone), 255, 0, 255);
-      motorSpeed_L = motorSpeed_L + ps2RX;
-      motorSpeed_R = motorSpeed_R - ps2RX;
-
-    // Don't exceed range of 0-255 for motor speeds
-
-      if (motorSpeed_L > 255) motorSpeed_L = 255;
-      if (motorSpeed_R < 0) motorSpeed_R = 0;      
-    }
-
-  // Adjust to prevent "buzzing" at very low speed
-
-  if (motorSpeed_L < MOTOR_LOWER_PWM_LIMIT) motorSpeed_L = 0;
-  if (motorSpeed_R < MOTOR_LOWER_PWM_LIMIT) motorSpeed_R = 0;
-
-  // get the motors going
-  motorLeftSet(motorSpeed_L, leftMotorDirection);
-  motorRightSet(motorSpeed_R, rightMotorDirection);
-
-  }
-    else { // if PSB_L1 not pressed, then we make sure motors are stopped
-      motorAllStop();
-    }
-  delay(50);
-} // fin motor_TELEOP_node_v1
-
-//********************************************
+//************** OPMODE ***************************
 //*********** RUN_PRESET_COURSE *******************
 
 void run_preset_course(void) {
@@ -373,8 +84,7 @@ void run_preset_course(void) {
   delay(5000);
 }
 
-//debug code SHOULD BE DISABLED IN PRODUCTION
-//********************************************
+//************ OPMODE ************************
 //**MEASURE_AND_CALIBRATE_MOTORS**************
 
 void measureAndCalibrateMotors(void) {
@@ -385,29 +95,30 @@ void measureAndCalibrateMotors(void) {
   motorAllStop();
      
   // display results on Serial Monitor
-  debug("encoderTimerLoopCount= ");
+  Serial.print("encoderTimerLoopCount= ");
   Serial.println(encoderTimerLoopCount, DEC);
   Serial.println("---------------------------");
-  debug("deltaCount_L= ");
+  Serial.print("deltaCount_L= ");
   Serial.println(deltaCount_L, DEC);
-  debug("deltaCount_R= ");
+  Serial.print("deltaCount_R= ");
   Serial.println(deltaCount_R, DEC);
 
   Serial.println("--------TOTALS------------\n");
-  debug("S1_L_count= ");
+  Serial.print("S1_L_count= ");
   Serial.println(S1_L_count, DEC);
-  debug("S1_R_count= ");
+  Serial.print("S1_R_count= ");
   Serial.println(S1_R_count, DEC);
 
   Serial.println("End of motor measure program.");
-
-  while(true){
-   ; // we do this only once
-  }
 }
 
+//************ OPMODE ************************
+//************ STANDBY ***********************
+
 void standby(void) {
-  // #TODO 
+  // #TODO
+  motorAllStop();
+
   /*  make sure motors are stopped
    *  get status of Nextion display
    *  get status of RTC
@@ -424,20 +135,26 @@ void standby(void) {
   */
 }
 
+//************ OPMODE ************************
+//************ FREE_RUN ***********************
+
 void free_run(void) {
  // #TODO
+     motorLeftSet(EMERGENCY_SLOW, FORWARD);
+     motorRightSet(EMERGENCY_SLOW, FORWARD);
+
  /*
   * get status of IR array
   * get obstacle
  */
 }
 
-
 // runs the selected opMode
 void runOpMode(byte om) {
   switch (om) {
     case STANDBY:
      currentOpModeName = "STANDBY";
+     motorAllStop();
      standby();
      break;
 
@@ -456,18 +173,16 @@ void runOpMode(byte om) {
      motor_TELEOP_node_v1();
      break;
 
-    //**********************************************
-    //***************** FREE_RUN *******************
     case FREE_RUN:
      currentOpModeName = "FREE RUN";
      free_run();
      break;
 
-    //************************************************
-    //***************** MEASURE_AND_CALIBRATE_MOTORS *
     case MEASURE_AND_CALIBRATE_MOTORS:
      currentOpModeName = "MESURE MOT.";
      measureAndCalibrateMotors();
+     // we do this only once then hang here
+     while(true){;}
      break;
     
     default:
@@ -510,12 +225,106 @@ void setGPIOs(void) {
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
 }
 
+// manages change of opMode
+void manageOpModeChange(void) {
+  if (opModeChangeRequested && opModeChangeAutorized) {
+   debug("in manageOpModeChange");
+   //dbSerialPrintln("  ");
+   currentOpMode = requestedOpMode;
+   debugln("debug requestedOpMode, value is: ");
+   debugln(requestedOpMode);
+   
+   opModeChangeRequested = false;
+   opModeChangeAutorized = false;
+   //effect opmode change
+   //runOpMode(currentOpMode);
+   currentHMIpage = 1;
+   page1.show(); //show opmode change page
+  }
+}
+
+void updateDisplayAndIndicators(void) {
+ if ((millis() - displayTimer) > displayInterval) {
+     //#TODO set LED_GREEN_SYSTEM_READY according to system status
+     //check RTC status
+     //check other status
+     //yellow LED on if any adverse condition occur
+
+     digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
+     if (!rtcFound || !hmiFound) digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+     
+    /* #TODO what to do with these
+     !rtcInitialized
+     rtcFound
+    */
+    now = rtc.now();
+    if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
+    debugln("from updateDisplayAndIndicators");
+    debugln(strDateTime(true));
+
+   // update LED_YELLOW_ALERT_CONDITION on vehicule
+   #ifdef TELEMETRY
+   if (currentTopic == maxNbrTopics) {
+     digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+   } else {digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);}
+   #endif
+
+   // ###########################################################
+   // HMI control
+   // display status according to currently selected status page
+   switch (currentHMIpage) {
+    case 0:
+      // this page 0; status page
+      // display topicsOverflow **************
+      //debug
+      #ifdef TELEMETRY
+      topicsOverflow = random(100); //debug
+      if (topicsOverflow > 70) {
+       jbuffstat.Set_font_color_pco(RED);
+      }
+      else {
+        jbuffstat.Set_font_color_pco(GREEN); // green
+      }
+     
+      if (topicsOverflow > 100) { topicsOverflow = 100; }
+      jbuffstat.setValue(topicsOverflow);
+      #endif //end ifdef TELEMETRY
+     
+     // update current opMode on HMI **************
+     memset(char_buffer, 0, sizeof(char_buffer));
+     strToChar(currentOpModeName); // mode name converted to chr in char_buffer
+     topmode.setText(char_buffer);
+
+     // todo update RTC status indicator
+     // RTC background color GREEN or RED
+
+    break;
+
+    case 1:
+      // this is page 1; opmode selection
+      // #TODO: ???
+    break;
+
+    case 2:
+      // this is the RTC page
+      // update all fields
+
+    default:
+    break;
+   }
+   displayTimer = millis();
+ } // end check display timer
+} // end updateDisplayAndIndicators
 
 void setup()
 {
   Serial.begin(9600);    // for debuging, handled by Nextion library see Nextion.h
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
+
+  // set yellow alert off
+  digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
+  digitalWrite(LED_GREEN_SYSTEM_READY, LOW); // now system is not ready
 
   setGPIOs();
   motorAllStop();
@@ -554,7 +363,6 @@ void setup()
   #endif
 
   debugln("Setup finished\n");
-  digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
 }
 
@@ -566,5 +374,4 @@ void loop()
  runOpMode(currentOpMode);
  delay(10); //#TODO for developement. this delay will have to be ajusted later
 }
-//endif for COMPILE_MAIN
-#endif
+#endif //endif for COMPILE_MAIN

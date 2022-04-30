@@ -1,7 +1,7 @@
 #ifndef _kva_history_h
 #define _kva_history_h
 /* 
- * see Kookye_Vehicule_Planning_v2.planner to follow develpement and issues
+ * see Kookye_Vehicule_Planning_v2.planner to follow developement and issues
  * 
  * KVA V1: first integration of Ps2 controler to replace joystick in TELEOP mode. In this version,
  *  - function motor_TELEOP_node_v1(): 

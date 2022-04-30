@@ -599,20 +599,4 @@ void bfrunPopCallback(void *ptr)
     setOpmodeButtonColors();
   }
 }
-
-// manages change of opMode
-void manageOpModeChange(void) {
-  if (opModeChangeRequested && opModeChangeAutorized) {
-   dbSerialPrintln("in manageOpModeChange");
-   dbSerialPrintln("  ");
-   currentOpMode = requestedOpMode;
-   dbSerialPrintln("debug requestedOpMode, value is: ");
-   dbSerialPrintln(requestedOpMode);
-   opModeChangeRequested = false;
-   opModeChangeAutorized = false;
-   //#TODO effect opmode change
-   currentHMIpage = 0;
-   page0.show(); //show status page 0 to monitor change
-  }
-}
 #endif

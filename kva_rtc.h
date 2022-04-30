@@ -2,7 +2,7 @@
 #define _kva_rtc_h
 #ifdef RTC_COMPILE
 
-#define ARDUINO_SAM_DUE // for DUE RTC that will run on SCK1 and SDA1
+#define ARDUINO_SAM_DUE // for DUE so that RTC will be connected to SCL1 and SDA1
 #include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and DUE Wire lib
 
 boolean rtcFound{false};      // RTC found or not
@@ -41,6 +41,7 @@ String strDateTime(bool seconds) {
 void kva_rtc_init(void) {
   if (rtc.begin()) {
     rtcFound = true;
+    debugln("RTC found!");
     // if year==02165, the RTC cannot be read
     // if year==2000, the RTC has probably lost power
     now = rtc.now();
@@ -57,8 +58,11 @@ void kva_rtc_init(void) {
       debugln(F(__TIME__));
       rtcInitialized = true;
     }
+    debugln(strDateTime(true));
   }
-  debugln(strDateTime(true));
+  else {
+    debugln("RTC not found!");
+  }
 }
 #endif //RTC_COMPILE
 #endif
