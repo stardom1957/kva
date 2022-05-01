@@ -25,40 +25,43 @@ NexPage page1    = NexPage(1, 0, "page1"); // set opMode page
 NexPage page2    = NexPage(2, 0, "page2"); // set RTC page
 
 //                                       (page, ID, objname)
-NexText topmode  =                NexText(0, 4, "topmode");    // displays current opMode
-NexProgressBar jbuffstat = NexProgressBar(0, 5, "jbuffstat");  // displays progress bar for message buffer status
+NexText topmode  =                NexText(0, 1, "topmode");    // displays current opMode
+NexText tready   =                NexText(0, 5, "tready");     // vehicule ready indicator
+NexText trtc     =                NexText(0, 6, "trtc");       // RTC ready indicator
+NexProgressBar jbuffstat = NexProgressBar(0, 2, "jbuffstat");  // displays progress bar for message buffer status
 
 // menu buttons components repeat on each page
 // note: all page change are handled by HMI, so no callback function required!
+// Nextion Editor kva_menu_7.hmi
 NexDSButton bstat1 =              NexDSButton(1, 4, "bstat1"); // page 1 button to status 0 CALLBACK REQUIRED
 NexDSButton bstat2 =              NexDSButton(2, 1, "bstat2"); // page 2 button to status page 0 CALLBACK REQUIRED
-NexDSButton bop0   =              NexDSButton(0, 7, "bop0");   // page 0 button to opMode selection page 1 CALLBACK REQUIRED
+NexDSButton bop0   =              NexDSButton(0, 3, "bop0");   // page 0 button to opMode selection page 1 CALLBACK REQUIRED
 NexDSButton bop2   =              NexDSButton(2, 2, "bop2");   // page 2 button to opMode selection page 1 CALLBACK REQUIRED
-NexDSButton brtc0  =              NexDSButton(0, 8, "brtc0");  // page 0 button to rtc set page 2 CALLBACK REQUIRED
-NexDSButton brtc1  =              NexDSButton(1, 6, "brtc1");  // page 1 button to rtc set page 2 CALLBACK REQUIRED
+NexDSButton brtc0  =              NexDSButton(0, 4, "brtc0");  // page 0 button to rtc set page 2 CALLBACK REQUIRED
+NexDSButton brtc1  =              NexDSButton(1, 5, "brtc1");  // page 1 button to rtc set page 2 CALLBACK REQUIRED
 
 // page 1 set opMode components
-NexButton bsby      = NexButton(1, 7, "bsby");        // STANDBY mode select button CALLBACK REQUIRED
-NexButton bfrun     = NexButton(1, 8, "bfrun");       // FREE_RUN mode select button CALLBACK REQUIRED
-NexButton btele     = NexButton(1, 9, "btele");       // TELEOPY mode select button CALLBACK REQUIRED
+NexButton bsby      = NexButton(1, 6, "bsby");        // STANDBY mode select button CALLBACK REQUIRED
+NexButton bfrun     = NexButton(1, 7, "bfrun");       // FREE_RUN mode select button CALLBACK REQUIRED
+NexButton btele     = NexButton(1, 8, "btele");       // TELEOPY mode select button CALLBACK REQUIRED
 NexNumber ngotimer  = NexNumber(1, 3, "ngotimer");    // time count for timer to start selected opMode
 
 // page 2 set RTC date and time components
-NexNumber nyear =      NexNumber(2, 4, "nyear");    // number field for year >= 2020
-NexNumber nmonth =     NexNumber(2, 5, "nmonth");   // number field for month
-NexNumber nday =       NexNumber(2, 6, "nday");     // number field for day
-NexNumber nhour =      NexNumber(2, 7, "nhour");    // number field for hours
-NexNumber nmin =       NexNumber(2, 8, "nmin");     // number field fo minutes
-NexNumber nsec =       NexNumber(2, 9, "nsec");     // number field for seconds
-NexDSButton btdate = NexDSButton(2, 16, "btdate");  // double state button to select date line for modif
-NexDSButton bttime = NexDSButton(2, 17, "bttime");  // double state button to select time line for modif
-NexButton bplus5 =      NexButton(2, 18, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
-NexButton bplus1 =      NexButton(2, 22, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
-NexButton bminus =     NexButton(2, 19, "bminus");  // button to substract 1 from current field being modified CALLBACK REQUIRED
-NexDSButton btyh =   NexDSButton(2, 13, "btyh");    // double state button to select year and hour row for modif
-NexDSButton btmm =   NexDSButton(2, 14, "btmm");    // double state button to select month and minutes row for modif
-NexDSButton btds =   NexDSButton(2, 15, "btds");    // double state button to select day and seconds row for modif
-NexButton bsetRTC =    NexButton(2, 21, "bsetRTC"); // button to set RTC CALLBACK REQUIRED
+NexNumber nyear =      NexNumber(2, 3, "nyear");    // number field for year >= 2020
+NexNumber nmonth =     NexNumber(2, 4, "nmonth");   // number field for month
+NexNumber nday =       NexNumber(2, 5, "nday");     // number field for day
+NexNumber nhour =      NexNumber(2, 6, "nhour");    // number field for hours
+NexNumber nmin =       NexNumber(2, 7, "nmin");     // number field fo minutes
+NexNumber nsec =       NexNumber(2, 8, "nsec");     // number field for seconds
+NexDSButton btdate = NexDSButton(2, 15, "btdate");  // double state button to select date line for modif
+NexDSButton bttime = NexDSButton(2, 16, "bttime");  // double state button to select time line for modif
+NexButton bplus5 =      NexButton(2, 17, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
+NexButton bplus1 =      NexButton(2, 21, "bplus5");   // button to add 5 to current fiels being modified CALLBACK REQUIRED
+NexButton bminus =     NexButton(2, 18, "bminus");  // button to substract 1 from current field being modified CALLBACK REQUIRED
+NexDSButton btyh =   NexDSButton(2, 12, "btyh");    // double state button to select year and hour row for modif
+NexDSButton btmm =   NexDSButton(2, 13, "btmm");    // double state button to select month and minutes row for modif
+NexDSButton btds =   NexDSButton(2, 14, "btds");    // double state button to select day and seconds row for modif
+NexButton bsetRTC =    NexButton(2, 20, "bsetRTC"); // button to set RTC CALLBACK REQUIRED
 
 // register components that have a CALLBACK
 NexTouch *nex_listen_list[] = 
@@ -93,16 +96,9 @@ byte currentHMIpage{0};                  // the page the HMi is currently showin
 // on page 0, button brtc0 pressed, page 2 requested
 // page 2 is RTC setup
 void brtc0PopCallback(void *ptr) {
-  dbSerialPrintln("brtc0PopCallback");
   currentHMIpage = 2;
   // if rtc is ok send actual date and time values to HMI number fields
-  if (rtcFound) {
-    updateDTtoHMI();
-    debugln("calling updateDTtoHMI");
-  }
-   else {
-    debugln("unable to update RCT: device not found");
-   }
+  if (rtcFound) {updateDTtoHMI();}
 }
 
 // on page 0, button bop0 pressed, page 1 requested

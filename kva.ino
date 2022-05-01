@@ -1,5 +1,4 @@
-/*
-History, see kva_history.h tab
+/*History, see kva_history.h
  */
 
 // ************** Compile directives
@@ -18,7 +17,7 @@ History, see kva_history.h tab
 // mainly replacing Serial.print and Serial.println by notting when not needed
 // that is DEBUG == 0
 
-#define DEBUG 1 // 1 is debug 0 is not
+#define DEBUG 0 // 1 is debug 0 is not
 
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
@@ -295,14 +294,20 @@ void updateDisplayAndIndicators(void) {
      strToChar(currentOpModeName); // mode name converted to chr in char_buffer
      topmode.setText(char_buffer);
 
-     // todo update RTC status indicator
-     // RTC background color GREEN or RED
+     tready.Set_background_color_bco(GREEN);
+
+     // RTC status
+     if (rtcInitialized){
+        trtc.Set_background_color_bco(GREEN);
+     }
+     else { trtc.Set_background_color_bco(RED); }
 
     break;
 
     case 1:
       // this is page 1; opmode selection
-      // #TODO: ???
+      // set color of current opmode button to green
+      setOpmodeButtonColors();
     break;
 
     case 2:
@@ -364,6 +369,14 @@ void setup()
 
   debugln("Setup finished\n");
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
+  // set backgroud color to ready indicator to green
+  tready.Set_background_color_bco(GREEN);
+
+  // RTC status
+  if (rtcInitialized){
+      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
+      trtc.Set_background_color_bco(GREEN);
+  }
 }
 
 void loop()
