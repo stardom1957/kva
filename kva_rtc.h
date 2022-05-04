@@ -42,10 +42,10 @@ void kva_rtc_init(void) {
   if (rtc.begin()) {
     rtcFound = true;
     debugln("RTC found!");
-    // if year==02165, the RTC cannot be read
-    // if year==2000, the RTC has probably lost power
+    // if year==2165U, the RTC cannot be read
+    // if year==2000U, the RTC has probably lost power
     now = rtc.now();
-    if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
+    if (now.year() == 2000U || now.year() == 2165U) rtcInitialized = false;
     debug("debug year= ");
     debugln(now.year());
     
@@ -62,6 +62,7 @@ void kva_rtc_init(void) {
   }
   else {
     debugln("RTC not found!");
+    digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
   }
 }
 #endif //RTC_COMPILE

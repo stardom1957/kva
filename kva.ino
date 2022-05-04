@@ -245,12 +245,19 @@ void manageOpModeChange(void) {
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) {
      //#TODO set LED_GREEN_SYSTEM_READY according to system status
-     //check RTC status
-     //check other status
      //yellow LED on if any adverse condition occur
-
      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
-     if (!rtcFound || !hmiFound) digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+
+     //check RTC status
+     if (!rtcFound) {
+      digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+      kva_rtc_init(); // starts RTC
+     }
+     //check other status
+
+     if (!hmiFound) {
+      digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+     }
      
     /* #TODO what to do with these
      !rtcInitialized

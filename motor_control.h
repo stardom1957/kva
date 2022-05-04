@@ -242,7 +242,7 @@ void motor_TELEOP_node_v1(void) {
    FORWARD is PSS_RY <= (127 - atRestZone)
    REVERSE is PSS_RY >= (127 + atRestZone)
    
-   Do this by reading the Verticle Value Y
+   Do this by reading the Vertical Value Y
    Apply results to MotorSpeed and to Direction
 */
    if (ps2RY >= (127 + atRestZone)) {
