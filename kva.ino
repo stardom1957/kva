@@ -11,7 +11,7 @@
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
-//#define TELEMETRY               // compile telemetry code
+#define TELEMETRY               // compile telemetry code
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by notting when not needed
@@ -239,6 +239,7 @@ void manageOpModeChange(void) {
    //runOpMode(currentOpMode);
    currentHMIpage = 1;
    page1.show(); //show opmode change page
+   setOpmodeButtonColors();
   }
 }
 
@@ -249,7 +250,7 @@ void updateDisplayAndIndicators(void) {
      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
 
      //check RTC status
-     if (!rtcFound) {
+     if (!rtcInitialized) {
       digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
       kva_rtc_init(); // starts RTC
      }
@@ -263,10 +264,13 @@ void updateDisplayAndIndicators(void) {
      !rtcInitialized
      rtcFound
     */
-    now = rtc.now();
-    if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
-    debugln("from updateDisplayAndIndicators");
-    debugln(strDateTime(true));
+    if (rtcFound) {
+      now = rtc.now();
+      debugln("from updateDisplayAndIndicators");
+      debugln(strDateTime(true));
+    }
+    
+    //if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
 
    // update LED_YELLOW_ALERT_CONDITION on vehicule
    #ifdef TELEMETRY
@@ -304,7 +308,7 @@ void updateDisplayAndIndicators(void) {
      tready.Set_background_color_bco(GREEN);
 
      // RTC status
-     if (rtcInitialized){
+     if (rtcInitialized && rtcFound){
         trtc.Set_background_color_bco(GREEN);
      }
      else { trtc.Set_background_color_bco(RED); }

@@ -124,17 +124,37 @@ branch motor_1_to_10 merged to master and deleted
     22.1.2 Removed unnecessary page change button on pages where not needed (like page 1 change on page 1!) DONE
     22.1.3 commit and merge into master
 
-23. RTC not responding
+23. RTC not responding on branch debug_rtc
   23.1 tested on sketch on RTC_DS3231_r_glage_v3.ino on Uno: RTC working and date and time set OK
   23.2 replaced on KVA vehicule OK
   23.3 bug RTC not found!:
     23.3.1 had it connected to pins SCL1 and SDA1 instead of SCL 20 and SDA 21 now OK
-    23.3.2 where is this confusion come from???????????????????
-    23.3.3 RTC not responding, new sketch test_rtc_on_due on another Due:
-      23.3.3.1 same library and code as kva_hmi.h ... reports to Serial
-      23.3.3.2 hardware level shifted 3.3v- 5v only on SDA using 8-ports level shifter
-      23.3.3.3 time set correctly from first run then, time set code removed:
-        - runs OK
+    23.3.2 free
+    23.3.3 RTC not responding, new sketch rtc_ds3231_on_due on KVA Due:
+      23.3.3.1 works fine OK DONE
+      23.3.3.2 hardware level shifted 3.3v- 5v only on SDA using 8-ports level shifter DONE
+      23.3.3.3 kva_rtc_init() simplified base on rtc_ds3231_on_due to only set dt from compile time if power lost detected
+       - runs OK DONE
+      23.3.3.4 let run for extended period w/o changing opmode, just changing page from HMI: works OK DONE
+      23.3.3.5 ran free run:
+      23.3.3.5.1 could not read RTC during this run
+      23.3.3.5.2 return to standby mode:
+       - RTC gives 2007 12 12 and no time
+       - yellow LED off
+       - status page RTC is green
+      23.3.3.5.3 reset Due:
+       - yellow LED on
+       - status page RTC is green
+       - RTC no longuer reachable
+    
+    23.3.4. Replaced ZS-042 by Deek-Robot RTC DS1307Z with datalogger (microSD card reader)
+      23.3.4.1 SDA will be shifted 5V - 3.3V. Determined from sketch rtc_and_data_logger_on_due on second Arduono Due,
+               see project binder, section 8.1.
+      23.3.4.2 integrated to vehicule in the following manner (as per section 8.1):
+        - Arduino Due SDA (3.3V) -> SDA BUS bar -> Wavechare 8-ch. level shifter A4 -> Wavechare 8-ch. level shifter B4 -> mini data-logger SDA
+        - In kva_rtc.h, changed RTC_DS3231 rtc; --> RTC_DS1307 rtc;
+        - sketch rtc_and_data_logger_on_due uploaded on KVA Due for testing: RTC non trouvé!
+
 
 24. update:
   24.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
@@ -146,7 +166,6 @@ Priority order
 --------------
 
 23 RTC <---
-22 HMI
 24
 10.1
 16.2

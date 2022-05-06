@@ -8,7 +8,8 @@
 boolean rtcFound{false};      // RTC found or not
 boolean rtcInitialized{true}; // found RTC, but not initialized for ex. due to power lost
 
-RTC_DS3231 rtc;
+//RTC_DS3231 rtc;
+RTC_DS1307 rtc;
 DateTime now;
 uint32_t daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -42,14 +43,10 @@ void kva_rtc_init(void) {
   if (rtc.begin()) {
     rtcFound = true;
     debugln("RTC found!");
-    // if year==2165U, the RTC cannot be read
-    // if year==2000U, the RTC has probably lost power
-    now = rtc.now();
-    if (now.year() == 2000U || now.year() == 2165U) rtcInitialized = false;
-    debug("debug year= ");
-    debugln(now.year());
-    
-    if (!rtcInitialized) {
+    digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);
+    rtcInitialized = true;
+    /*
+    if (rtc.lostPower()) {
       // set the RTC to the date & time this sketch was compiled
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
       debug("RTC set to compile time: ");
@@ -58,11 +55,15 @@ void kva_rtc_init(void) {
       debugln(F(__TIME__));
       rtcInitialized = true;
     }
+    */
     debugln(strDateTime(true));
   }
   else {
     debugln("RTC not found!");
+    rtcInitialized = false;
+    Serial.flush();
     digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+    rtcFound = false;
   }
 }
 #endif //RTC_COMPILE
