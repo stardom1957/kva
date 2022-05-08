@@ -89,7 +89,7 @@
  9.2 free
  
 10. on vehicule DEL status (section 6.x):
-  10.1 write a function to turn on off given condition
+  10.1 write a function to turn on off given condition DONE
 
 11. free
 
@@ -103,6 +103,7 @@
 
 16. TELEOP mode. revise code for ps2 controler:
   16.1 emergency (slow) movement not working properly: changed to buttons triangle, square, circle and cross DONE
+  (**** on branch teleop_mode_opitmize ****)
   16.2 bug when joystick is realeased (autocenter): motor are not stopped
   
 
@@ -168,16 +169,17 @@ branch motor_1_to_10 merged to master and deleted
   24.1 rtc running?: according to RTClib: isrunning(void)
   24.2 lost power (battery)
 
-25. branch debug_rtc merged into master and deleted
+25. branch debug_rtc merged into master and deleted DONE
 
-25. update:
-  25.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
-  25.2 label cable for RTC correctly and update annex B
+26. update:
+  26.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
+  26.2 label cable for RTC correctly and update annex B
   
  
 Priority order
 --------------
+26.2
+16.2 teleop mode optimization
 10.1
-16.2
  */
 #endif
