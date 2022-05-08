@@ -245,32 +245,21 @@ void manageOpModeChange(void) {
 
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) {
-     //#TODO set LED_GREEN_SYSTEM_READY according to system status
      //yellow LED on if any adverse condition occur
      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
 
      //check RTC status
-     if (!rtcInitialized) {
+     if (rtc.isrunning() == 0) {
       digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
-      kva_rtc_init(); // starts RTC
+      // try to initialize RTC
+      rtcFound = kva_rtc_init();
      }
-     //check other status
 
+     //check HMI
      if (!hmiFound) {
       digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
      }
-     
-    /* #TODO what to do with these
-     !rtcInitialized
-     rtcFound
-    */
-    if (rtcFound) {
-      now = rtc.now();
-      debugln("from updateDisplayAndIndicators");
-      debugln(strDateTime(true));
-    }
     
-    //if (now.year() == 2000 || now.year() == 02165) rtcInitialized = false;
 
    // update LED_YELLOW_ALERT_CONDITION on vehicule
    #ifdef TELEMETRY
@@ -305,10 +294,27 @@ void updateDisplayAndIndicators(void) {
      strToChar(currentOpModeName); // mode name converted to chr in char_buffer
      topmode.setText(char_buffer);
 
+    // update time field
+     //String tm{NULL};
+     memset(char_buffer, 0, sizeof(char_buffer));
+     if (rtcFound) {
+      // get time with seconds
+      now = rtc.now();
+      strToChar("hh:mm:ss"); // set format in char_buffer
+      now.toString(char_buffer); // put time in char_buffer
+      ttime.setText(char_buffer);
+      ttime.Set_background_color_bco(GREEN);
+     }
+     else {
+        strToChar("no RTC!"); // time converted to chr in char_buffer
+        ttime.setText(char_buffer);
+        ttime.Set_background_color_bco(RED);
+       }
+     
      tready.Set_background_color_bco(GREEN);
 
      // RTC status
-     if (rtcInitialized && rtcFound){
+     if (rtcFound){
         trtc.Set_background_color_bco(GREEN);
      }
      else { trtc.Set_background_color_bco(RED); }
@@ -342,9 +348,16 @@ void setup()
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   digitalWrite(LED_GREEN_SYSTEM_READY, LOW); // now system is not ready
 
+  // starts RTC
+  rtcFound = kva_rtc_init();
+  if (!rtcFound) {
+    digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
+  }
+
   setGPIOs();
   motorAllStop();
-  
+
+  // attach interrupts for motor encoders
   attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
   attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
 
@@ -374,20 +387,8 @@ void setup()
   /* this is the default opmode at start of vehicule */
   currentOpMode = STANDBY;
 
-  #ifdef RTC_COMPILE
-  kva_rtc_init(); // starts RTC
-  #endif
-
-  debugln("Setup finished\n");
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
-  // set backgroud color to ready indicator to green
-  tready.Set_background_color_bco(GREEN);
-
-  // RTC status
-  if (rtcInitialized){
-      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
-      trtc.Set_background_color_bco(GREEN);
-  }
+  debugln("Setup finished\n");
 }
 
 void loop()

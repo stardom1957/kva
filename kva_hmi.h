@@ -28,6 +28,8 @@ NexPage page2    = NexPage(2, 0, "page2"); // set RTC page
 NexText topmode  =                NexText(0, 1, "topmode");    // displays current opMode
 NexText tready   =                NexText(0, 5, "tready");     // vehicule ready indicator
 NexText trtc     =                NexText(0, 6, "trtc");       // RTC ready indicator
+NexText ttime    =                NexText(0, 7, "ttime");       // time field
+
 NexProgressBar jbuffstat = NexProgressBar(0, 2, "jbuffstat");  // displays progress bar for message buffer status
 
 // menu buttons components repeat on each page
@@ -82,7 +84,6 @@ NexTouch *nex_listen_list[] =
 
 */
 
-char char_buffer[25] = {0};              // C-style char buffer to hold String data
 unsigned long displayTimer{0};           // timer count to control dislay of status to HMI
 unsigned long displayInterval{1000};     // display status interval in ms
 uint32_t delayStatOpMode = (uint32_t)10; // delay in s
@@ -308,7 +309,6 @@ void setRTCfromInput(void) {
   if (rtcFound) {
    rtc.adjust(DateTime(nYear, nMonth, nDay, nHour, nMin, nSec));
    //debug rtc.adjust(DateTime(2017, 4, 21, 22, 52, 00));
-   rtcInitialized = true;
   }
 }
 

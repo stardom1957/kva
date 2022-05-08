@@ -6,7 +6,6 @@
 #include "RTClib.h" // Date and time functions using a DS3231 RTC connected via I2C and DUE Wire lib
 
 boolean rtcFound{false};      // RTC found or not
-boolean rtcInitialized{true}; // found RTC, but not initialized for ex. due to power lost
 
 //RTC_DS3231 rtc;
 RTC_DS1307 rtc;
@@ -39,31 +38,18 @@ String strDateTime(bool seconds) {
 }
 
 // RTC init
-void kva_rtc_init(void) {
+boolean kva_rtc_init(void) {
   if (rtc.begin()) {
-    rtcFound = true;
     debugln("RTC found!");
     digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);
-    rtcInitialized = true;
-    /*
-    if (rtc.lostPower()) {
-      // set the RTC to the date & time this sketch was compiled
-      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-      debug("RTC set to compile time: ");
-      debug(F(__DATE__));
-      debug(" ");
-      debugln(F(__TIME__));
-      rtcInitialized = true;
-    }
-    */
     debugln(strDateTime(true));
+    return true;
   }
   else {
     debugln("RTC not found!");
-    rtcInitialized = false;
     Serial.flush();
     digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
-    rtcFound = false;
+    return false;
   }
 }
 #endif //RTC_COMPILE

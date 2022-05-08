@@ -124,7 +124,7 @@ branch motor_1_to_10 merged to master and deleted
     22.1.2 Removed unnecessary page change button on pages where not needed (like page 1 change on page 1!) DONE
     22.1.3 commit and merge into master
 
-23. RTC not responding on branch debug_rtc
+23. RTC not responding (on branch ********** debug_rtc ******) DONE
   23.1 tested on sketch on RTC_DS3231_r_glage_v3.ino on Uno: RTC working and date and time set OK
   23.2 replaced on KVA vehicule OK
   23.3 bug RTC not found!:
@@ -154,19 +154,29 @@ branch motor_1_to_10 merged to master and deleted
         - Arduino Due SDA (3.3V) -> SDA BUS bar -> Wavechare 8-ch. level shifter A4 -> Wavechare 8-ch. level shifter B4 -> mini data-logger SDA
         - In kva_rtc.h, changed RTC_DS3231 rtc; --> RTC_DS1307 rtc;
         - sketch rtc_and_data_logger_on_due uploaded on KVA Due for testing: RTC non trouvé!
+        - from testing according to binder, section 8.1, it seems that level shifting was the culprit. It works perfectly if
+          no level shifting is done. Connected this way (KVA I2C bus not used):
+           -- 5V and ground from Arduino Due
+           -- Arduino Due SDA --> data-logger SDA
+           -- Arduini Due SCL --> data-logger SCL
+         - test on I2C bus and KVA 5V bus OK
+         - measured V (oscilloscope) SDA and SCL 3.4V
+         - RTC works perfectly
+      23.3.4.3 ran free run and teleop modes several times: RTC works oerfectly during and after
 
+24. RTC diagnostics and indicators (on branch ********** debug_rtc ******):
+  24.1 rtc running?: according to RTClib: isrunning(void)
+  24.2 lost power (battery)
 
-24. update:
-  24.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
-  23.2 label cable for RTC correctly and update annex B
+25. branch debug_rtc merged into master and deleted
+
+25. update:
+  25.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
+  25.2 label cable for RTC correctly and update annex B
   
-25. 
-  
+ 
 Priority order
 --------------
-
-23 RTC <---
-24
 10.1
 16.2
  */

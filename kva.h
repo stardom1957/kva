@@ -20,9 +20,13 @@ void setGPIOs(void);
 void updateDisplayAndIndicators(void);
 void manageOpModeChange(void);
 void strToChar(String);
-void kva_rtc_init(void);
+
+#ifdef RTC_COMPILE
+boolean kva_rtc_init(void); // to starts RTC
+String strDateTime(bool); // gets date time in string
+#endif
+
 void setOpmodeButtonColors(void);
-String strDateTime(bool);
 void updateDTtoHMI(void);
 void incrementField(int);
 void setRTCfromInput(void);
@@ -35,6 +39,7 @@ void setRTCfromInput(void);
 #define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
 
+char char_buffer[25] = {0};              // C-style char buffer to hold String data
 
 //***STATUS*****STATUS*****STATUS*****STATUS*****STATUS*****STATUS*
 //*****************************************************************
