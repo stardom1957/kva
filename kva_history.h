@@ -118,7 +118,7 @@ branch motor_1_to_10 merged to master and deleted
 
 19. Issue 6.2.3 Simple messages Tx for debugs trought telemetry
 
-20. Issue 2.5.10 TELEOP using simple commands trough telemetry (Xbee)
+20. Issue 2.5.10 TELEOP using simple commands trough telemetry (Xbee) for development of free run?
 
 21. Nextion devel is on laptop. copy on kva and document using print screens
    This is project 23 in sketches binder
@@ -182,13 +182,19 @@ branch motor_1_to_10 merged to master and deleted
 
 27. update:
   27.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
-  28.2 label cable for RTC correctly and update annex B
-  
- 
-Priority order
---------------
-26.2
-16.3 teleop mode optimization DOne
-10.1
+  27.2 label cable for RTC correctly and update annex B DONE
+
+28. work on issue 21: document HMI i binder and copy code in kva folder
+
+29. PID implementation:
+  29.1  (**** on branch pid_developpement ****)
+  29.2 going in a streat line (L == R)
+  29.3 regular rotation (maintaining difference between L & R)
+  29.4 ramping speed up and down
+
+ Working on
+ ----------
+29
+28
  */
 #endif
