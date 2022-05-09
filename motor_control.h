@@ -162,7 +162,9 @@ void motor_TELEOP_node_v1(void) {
   byte rightMotorDirection;
   int ps2RY; //we are using the right hand joystick
   int ps2RX;  
-  const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
+  //const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
+  const int atRestZone {3};  // buffer zone to indicate stick is at rest in the middle
+  boolean emergency_run{false}; // indicates we are moving using emergency buttons
   
   if(PS2_config_result == 254) { //try to setup controler up to 10 times
    // debug debugln("Setting controler...");
@@ -181,70 +183,62 @@ void motor_TELEOP_node_v1(void) {
   }
  
   ps2x.read_gamepad();
+  //****************** all buttons are read only if button PSB_L1 is held pressed
+  //****************** this is the dead man's grip
 
-  //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
-/*
-#define PSB_TRIANGLE    0x1000
-#define PSB_CIRCLE      0x2000
-#define PSB_CROSS       0x4000
-#define PSB_SQUARE      0x8000
-  */  
+  if(ps2x.Button(PSB_L1)) {
+
+    //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
     //slow forward
     if(ps2x.ButtonPressed(PSB_TRIANGLE)){
+      debugln("emergency forward");
+      emergency_run = true;
       motorLeftSet(EMERGENCY_SLOW, FORWARD);
       motorRightSet(EMERGENCY_SLOW, FORWARD);
     }
     if(ps2x.ButtonReleased(PSB_TRIANGLE)){
       motorAllStop();
+      emergency_run = false;
     }
 
     //slow reverse
     if(ps2x.ButtonPressed(PSB_CROSS)){
+      emergency_run = true;
       motorLeftSet(EMERGENCY_SLOW, REVERSE);
       motorRightSet(EMERGENCY_SLOW, REVERSE);
     }   
     if(ps2x.ButtonReleased(PSB_CROSS)){
+      emergency_run = false;
       motorAllStop();
     }
 
     //slow left in place rotation    
     if(ps2x.ButtonPressed(PSB_SQUARE)){
+      emergency_run = true;
       vehiculeRotateLeft(EMERGENCY_SLOW);
     }
     if(ps2x.ButtonReleased(PSB_SQUARE)) {
+      emergency_run = false;
       motorAllStop();
     }
 
     //slow in place right rotation
     if(ps2x.ButtonPressed(PSB_CIRCLE)){
+       emergency_run = true;
        vehiculeRotateRight(EMERGENCY_SLOW);
     }
     if(ps2x.ButtonReleased(PSB_CIRCLE)) {
+      emergency_run = false;
       motorAllStop();
     }
 
   
   //**************** JOYSTICK OPERATION ********************************************
-  //****************** all buttons are read only if button PSB_L1 is held pressed
-  //****************** this is the dead man's grip
-  if(ps2x.Button(PSB_L1)) {
 
-    // reading the right stick values
-    ps2RX = ps2x.Analog(PSS_RX); //Raw right stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
-    ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
+   // reading the right stick values
+   ps2RX = ps2x.Analog(PSS_RX); //Raw right stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
+   ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
 
-/* debug
-    debug(ps2RX, DEC); //Left stick, Y axis. Other options: LX, RY, RX  
-    debug(",");
-    debugln__2arg(ps2RY, DEC); 
-*/
-/* PSS_RY determines if this is a forward or reverse motion
-   FORWARD is PSS_RY <= (127 - atRestZone)
-   REVERSE is PSS_RY >= (127 + atRestZone)
-   
-   Do this by reading the Vertical Value Y
-   Apply results to MotorSpeed and to Direction
-*/
    if (ps2RY >= (127 + atRestZone)) {
      // This is reverse
      leftMotorDirection = REVERSE;
@@ -257,7 +251,7 @@ void motor_TELEOP_node_v1(void) {
      motorSpeed_R = map(ps2RY, (127 + atRestZone), 255, 0, 255);
    }
   
-  else if (ps2RY <= (127 - atRestZone)) {
+   else if (ps2RY <= (127 - atRestZone)) {
     // This is Forward
      leftMotorDirection = FORWARD;
      rightMotorDirection = FORWARD;
@@ -268,35 +262,32 @@ void motor_TELEOP_node_v1(void) {
     motorSpeed_L = map(ps2RY, (127 - atRestZone), 0, 0, 255);
     motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
 
-  }
-  else {
+   }
+   else {
     // the stick is in the middle rest zone, so this is Stopped
-
     motorSpeed_L = 0;
     motorSpeed_R = 0; 
+   }
 
-  }
-  
-  // Now do the steering
-  // The Horizontal position X will "weigh" the motor speed
-  // Values for each motor
+  /*
+   Now do the steering
+   The Horizontal position X will "weigh" the motor speed
+   Values for each motor
 
-   // PSS_LX determines the steering direction
-   // LEFT  is PSS_LX <= (128 - atRestZone)
-   // RIGHT is PSS_LX >= (128 + atRestZone)
+   ps2RX determines the steering direction
+   LEFT  is ps2RX <= (128 - atRestZone)
+   RIGHT is ps2RX >= (128 + atRestZone)
+   */
 
   if (ps2RX <= (128 - atRestZone)) {
     // We move to the left
     // Map the number to a value of 255 maximum
 
     ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
-        
-
     motorSpeed_L = motorSpeed_L - ps2RX;
     motorSpeed_R = motorSpeed_R + ps2RX;
 
     // Don't exceed range of 0-255 for motor speeds
-
     if (motorSpeed_L < 0) motorSpeed_L = 0;
     if (motorSpeed_R > 255) motorSpeed_R = 255;
   }
@@ -324,10 +315,10 @@ void motor_TELEOP_node_v1(void) {
   motorRightSet(motorSpeed_R, rightMotorDirection);
 
   }
-    else { // if PSB_L1 not pressed, then we make sure motors are stopped
-      motorAllStop();
-    }
-  delay(50);
+  else { // if PSB_L1 not pressed, then we stop the motors
+        motorAllStop();
+  }
+  //debug delay(50);
 } // fin motor_TELEOP_node_v1
 
 

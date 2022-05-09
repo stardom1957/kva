@@ -104,7 +104,11 @@
 16. TELEOP mode. revise code for ps2 controler:
   16.1 emergency (slow) movement not working properly: changed to buttons triangle, square, circle and cross DONE
   (**** on branch teleop_mode_opitmize ****)
-  16.2 bug when joystick is realeased (autocenter): motor are not stopped
+  16.2 bug when joystick is realeased (autocenter): motor are not stopped DONE
+  16.3 bug because of 16.2 fix, emergency does not run anymore SOLVED
+  16.4 solve for joystick full left | right: should give same as emergency slow right | left??
+  16.5 digitalWrite(PS2X_CS, LOW); when we enter teleop mode; should we do digitalWrite(PS2X_CS, HIGH); when leeving teleop mode??
+  16.6 in joystick opeation, is delay(50); really necessary??
   
 
 17. Issue 2.13.2. motor speed should be set from 1 to 10 ABANDONNED
@@ -171,15 +175,20 @@ branch motor_1_to_10 merged to master and deleted
 
 25. branch debug_rtc merged into master and deleted DONE
 
-26. update:
-  26.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
-  26.2 label cable for RTC correctly and update annex B
+26. Worked out issue 16 TELEOP mode. revise code for ps2 controler DONE
+  26.1 (**** on branch teleop_mode_opitmize ****)
+  26.2 commit and merged into master
+  26.3 (**** deleted branch teleop_mode_opitmize ****)
+
+27. update:
+  27.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
+  28.2 label cable for RTC correctly and update annex B
   
  
 Priority order
 --------------
 26.2
-16.2 teleop mode optimization
+16.3 teleop mode optimization DOne
 10.1
  */
 #endif
