@@ -2,9 +2,57 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
-void ISR_timerEncoder(void);
-void ISR_S1_L(void);
-void ISR_S1_R(void);
+// status for motor control
+int motorSpeed_L = 0; // Motor Speed Values - Start at zero
+int motorSpeed_R = 0;
+#define MOTOR_LOWER_PWM_LIMIT 25 // to avoid buzzing
+#define EMERGENCY_SLOW 150 //emergency speed to get out of trouble
+
+
+//*******************************************
+//************* motor control definitions
+//*******************************************
+
+// left motor on L298N channel A
+#define ENA_L_PIN 4 // enable PWM speed control
+#define IN1_L_PIN   29 // direction control
+#define IN2_L_PIN   27 // direction control
+
+// right motor on L298N channel B
+#define ENB_R 3 // enable PWM speed control
+#define IN3_R_PIN   25 // direction control
+#define IN4_R_PIN   23 // direction control
+
+//*************** motors encoders (Hall) sensors definitions
+//setup timer interrupt for motor encoders
+DueTimer encoderTimer = Timer.getAvailable();
+
+volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
+volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
+volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
+
+volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
+volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
+volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
+
+volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
+
+#define S1motorEncoder_L_PIN 22  // motor encoder S1 A pin
+#define S2motorEncoder_L_PIN 24  // motor encoder S2 B pin 
+#define S1motorEncoder_R_PIN 26  // motor encoder S1 A pin
+#define S2motorEncoder_R_PIN 28  // motor encoder S2 B pin
+
+// motor direction
+const byte FORWARD {0};
+const byte BACKWARD {1};
+
+
+
+// ISRs
+void ISR_timerEncoder(void); // reads motors sensors
+void ISR_S1_L(void); // increment left motor sensor count
+void ISR_S1_R(void); // increment right motor sensor count
+
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
@@ -13,7 +61,9 @@ void motorRightStop(void);
 void motorLeftStop(void);
 void motorAllStop(void);
 
-//ISR timer for motor sensor readings
+// ISR for motor sensor readings
+// this ISR is attached to encoderTimer
+// reads and updates count values
 void ISR_timerEncoder(void) {
      //debug noInterrupts(); //stop all interrupts
      //debug possibly just detach this ISR here and reattach at the end
@@ -46,17 +96,17 @@ void motorRightSet(int speed, byte direction) {
   case FORWARD:
    // moteur droit avance
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN3, LOW);
-     digitalWrite(IN4, HIGH);
+     digitalWrite(IN3_R_PIN, LOW);
+     digitalWrite(IN4_R_PIN, HIGH);
      analogWrite(ENB_R, speed);
    }
    break;
 
-  case REVERSE:
+  case BACKWARD:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN3, HIGH);
-     digitalWrite(IN4, LOW);
+     digitalWrite(IN3_R_PIN, HIGH);
+     digitalWrite(IN4_R_PIN, LOW);
      analogWrite(ENB_R, speed);
    }
    break;
@@ -68,13 +118,13 @@ void motorRightSet(int speed, byte direction) {
 
 // rotate the vehicule in place l and r
 void vehiculeRotateRight(int speed) {
- motorRightSet(speed, REVERSE);
+ motorRightSet(speed, BACKWARD);
  motorLeftSet(speed, FORWARD);
 }
 
 void vehiculeRotateLeft(int speed) {
  motorRightSet(speed, FORWARD);
- motorLeftSet(speed, REVERSE);
+ motorLeftSet(speed, BACKWARD);
 }
 
 void motorLeftSet(int speed, byte direction) {
@@ -82,17 +132,17 @@ void motorLeftSet(int speed, byte direction) {
   case FORWARD:
    // moteur droit avance
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, LOW);
-     digitalWrite(IN2_PIN, HIGH);
+     digitalWrite(IN1_L_PIN, LOW);
+     digitalWrite(IN2_L_PIN, HIGH);
      analogWrite(ENA_L_PIN, speed);
    }
    break;
 
-  case REVERSE:
+  case BACKWARD:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, HIGH);
-     digitalWrite(IN2_PIN, LOW);
+     digitalWrite(IN1_L_PIN, HIGH);
+     digitalWrite(IN2_L_PIN, LOW);
      analogWrite(ENA_L_PIN, speed);
    }
    break;
@@ -188,7 +238,7 @@ void motor_TELEOP_node_v1(void) {
 
   if(ps2x.Button(PSB_L1)) {
 
-    //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
+    //*************EMERGENCY ROTATION AND FORWARD/BACKWARD ************
     //slow forward
     if(ps2x.ButtonPressed(PSB_TRIANGLE)){
       debugln("emergency forward");
@@ -204,8 +254,8 @@ void motor_TELEOP_node_v1(void) {
     //slow reverse
     if(ps2x.ButtonPressed(PSB_CROSS)){
       emergency_run = true;
-      motorLeftSet(EMERGENCY_SLOW, REVERSE);
-      motorRightSet(EMERGENCY_SLOW, REVERSE);
+      motorLeftSet(EMERGENCY_SLOW, BACKWARD);
+      motorRightSet(EMERGENCY_SLOW, BACKWARD);
     }   
     if(ps2x.ButtonReleased(PSB_CROSS)){
       emergency_run = false;
@@ -241,8 +291,8 @@ void motor_TELEOP_node_v1(void) {
 
    if (ps2RY >= (127 + atRestZone)) {
      // This is reverse
-     leftMotorDirection = REVERSE;
-     rightMotorDirection = REVERSE;
+     leftMotorDirection = BACKWARD;
+     rightMotorDirection = BACKWARD;
 
      //motor speeds is determined from stick values ps2RY
      // we need to map the reading from 0 to 255

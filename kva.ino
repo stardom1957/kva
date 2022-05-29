@@ -6,6 +6,7 @@
 #define RTC_COMPILE
 #define MOTOR_CONTROL_COMPILE
 #define SENSORS_COMPILE
+#define PID_COMPILE
 
 #ifdef COMPILE_MAIN
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
@@ -45,6 +46,9 @@
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
 
+#ifdef PID_COMPILE
+#include "PID.h"
+#endif
 
 //************** OPMODE ***************************
 //*********** RUN_PRESET_COURSE *******************
@@ -57,20 +61,20 @@ void run_preset_course(void) {
   motorAllStop();
   Serial.println("Both motors STOPED for 3s");
   delay(3000);
-  Serial.println("Both motors REVERSE for 4s");
-  motorLeftSet(200, REVERSE);
-  motorRightSet(200, REVERSE);
+  Serial.println("Both motors BACKWARD for 4s");
+  motorLeftSet(200, BACKWARD);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor FORWARD and Right motor REVERSE for 4s");
+  Serial.println("Left motor FORWARD and Right motor BACKWARD for 4s");
   motorAllStop();
   motorLeftSet(200, FORWARD);
-  motorRightSet(200, REVERSE);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor REVERSE and Right motor FORWARD for 4s");
+  Serial.println("Left motor BACKWARD and Right motor FORWARD for 4s");
   motorAllStop();
-  motorLeftSet(200, REVERSE);
+  motorLeftSet(200, BACKWARD);
   motorRightSet(200, FORWARD);
   delay(4000);
      
@@ -115,23 +119,7 @@ void measureAndCalibrateMotors(void) {
 //************ STANDBY ***********************
 
 void standby(void) {
-  // #TODO
   motorAllStop();
-
-  /*  make sure motors are stopped
-   *  get status of Nextion display
-   *  get status of RTC
-   *  - get time values from RTC
-   *  get status of SD card adaptor
-   *  get status of IR sensor array
-   *  get status of IMU
-   *  - get attitude date from IMU
-   *  get status of message buffer
-   *  get status of serial comm to remote HMI
-   *  
-   *  send relevant telemetry
-   * 
-  */
 }
 
 //************ OPMODE ************************
@@ -205,10 +193,10 @@ void setGPIOs(void) {
   // set all the motor control pins to outputs
   pinMode(ENA_L_PIN, OUTPUT);
   pinMode(ENB_R, OUTPUT);
-  pinMode(IN1_PIN, OUTPUT);
-  pinMode(IN2_PIN, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
+  pinMode(IN1_L_PIN, OUTPUT);
+  pinMode(IN2_L_PIN, OUTPUT);
+  pinMode(IN3_R_PIN, OUTPUT);
+  pinMode(IN4_R_PIN, OUTPUT);
 
   // set all encoder sensors to INPUT
   pinMode(S1motorEncoder_L_PIN,INPUT);

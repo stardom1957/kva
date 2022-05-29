@@ -184,16 +184,27 @@ branch motor_1_to_10 merged to master and deleted
   27.1 in updateDisplayAndIndicators, check on availability of RTC and report with YELLOW LED and status on HMI page 1 DONE
   27.2 label cable for RTC correctly and update annex B DONE
 
-28. work on issue 21: document HMI i binder and copy code in kva folder
+28. work on issue 21: document HMI in binder and copy code in kva folder
 
 29. PID implementation:
   29.1  (**** on branch pid_developpement ****)
+  29.2 create new PID.h from .../motors_measure_v4_just_run ???
+     or from ...
   29.2 going in a streat line (L == R)
   29.3 regular rotation (maintaining difference between L & R)
   29.4 ramping speed up and down
+  29.5 name changes for some #define related to motor functions DONE
+
+30. testing motor Hall encoders in FREE_RUN mode:
+  30.1 left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
+       motor encoder is performing ok. Tested in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
+       and S2 (encoder B) is ok with reversal of motor.
+  30.2 left motor not working BACKWARD in either TELEOP or FREE_RUN mode:
+    30.2.1 ckecking with spare motor M3 to see if the issue is with L298N <--
 
  Working on
  ----------
+30 <---
 29
 28
  */
