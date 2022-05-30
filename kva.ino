@@ -14,10 +14,10 @@
 #define SERIAL_HMI            2 // serial port to Nextion HMI
 #define TELEMETRY               // compile telemetry code
 
-// definition of debug levels
-// mainly replacing Serial.print and Serial.println by notting when not needed
-// that is DEBUG == 0
-
+// ***************** definition of debug levels
+// when DEBUG is set to 1, replace Serial.print and Serial.println by notting
+// when DEBUG is set to 0, all Serial.print and Serial.println are active
+// ***************************************************************************
 #define DEBUG 0 // 1 is debug 0 is not
 
 #if DEBUG == 1
@@ -32,6 +32,10 @@
 #define debugln(x)
 #define debugln_2arg(x, y)
 #endif
+
+/*******************************************
+ * Includes ********************************
+ *******************************************/
 
 #include <DueTimer.h>
 #include <PS2X_lib.h>  //revised library from KurtE from Github

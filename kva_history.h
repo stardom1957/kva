@@ -77,13 +77,19 @@
  *  ON BRANCH debug_hmi vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
  *  - new numbers 
  *  
- 3. section 12, see note inside KVA binder
+3. section 12, see note inside KVA binder
+
 4. free
+
 5. section 4.5.4, 5v power bus
+
 6. write the block diagram for the entire KVA vehicule. See tobotic book for an example
   see also section 2 motor control
+
 7. Annex B to update DONE
+
 8. section 2.10.1, schematic to make?
+
 9. Annex AL
  9.1 block diagram?
  9.2 free
@@ -99,7 +105,7 @@
 13. free
 14. GREEN DEL on vehicule turns on when init done and vehicule ready DONE
 
-15. XBee works at 115200 bps OK
+15. XBee works at 115200 bps? YES
 
 16. TELEOP mode. revise code for ps2 controler:
   16.1 emergency (slow) movement not working properly: changed to buttons triangle, square, circle and cross DONE
@@ -107,8 +113,8 @@
   16.2 bug when joystick is realeased (autocenter): motor are not stopped DONE
   16.3 bug because of 16.2 fix, emergency does not run anymore SOLVED
   16.4 solve for joystick full left | right: should give same as emergency slow right | left??
-  16.5 digitalWrite(PS2X_CS, LOW); when we enter teleop mode; should we do digitalWrite(PS2X_CS, HIGH); when leeving teleop mode??
-  16.6 in joystick opeation, is delay(50); really necessary??
+  16.5 SPI control: digitalWrite(PS2X_CS, LOW); when we enter teleop mode; should we do digitalWrite(PS2X_CS, HIGH); when leeving teleop mode??
+  16.6 in joystick operation, is delay(50); really necessary?? REMOVED
   
 
 17. Issue 2.13.2. motor speed should be set from 1 to 10 ABANDONNED
@@ -196,10 +202,10 @@ branch motor_1_to_10 merged to master and deleted
   29.5 name changes for some #define related to motor functions DONE
 
 30. testing motor Hall encoders in FREE_RUN mode:
-  30.1 left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
+  30.1 BUG left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
        motor encoder is performing ok. Tested in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
        and S2 (encoder B) is ok with reversal of motor.
-  30.2 another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue.
+  30.2 BUG another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue.
   30.3 testing with L298N controler replacement <----
   30.4 modify ISR that count encoders to take direction in consideration
 

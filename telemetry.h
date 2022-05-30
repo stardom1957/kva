@@ -118,11 +118,11 @@
  Serial.println();
 */  
 // topics
-#define MOTORS_STATUS 0 //bit mapped to byte value
-#define LMOTOR_SPEED 1 // unsigned int
-#define RMOTOR_SPEED 2 // unsigned int
-#define COLLISION_SENSOR_STATUS 3 // bit mapped to byte value
-#define CURRENT_OP_MODE 4
+#define MOTORS_STATUS_TOPIC           0 //bit mapped to byte value
+#define LMOTOR_SPEED_TOPIC            1 // unsigned int
+#define RMOTOR_SPEED_TOPIC            2 // unsigned int
+#define COLLISION_SENSOR_STATUS_TOPIC 3 // bit mapped to byte value
+#define CURRENT_OP_MODE_TOPIC         4
 
 class Topic {
  public:

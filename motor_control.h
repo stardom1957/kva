@@ -10,47 +10,47 @@ int motorSpeed_R = 0;
 
 
 //*******************************************
-//************* motor control definitions
+//************* L298N ***********************
+//************* motor control definitions ***
 //*******************************************
 
 // left motor on L298N channel A
 #define ENA_L_PIN 4 // enable PWM speed control
-#define IN1_L_PIN   29 // direction control
-#define IN2_L_PIN   27 // direction control
+#define IN1_L_PIN 29 // direction control
+#define IN2_L_PIN 27 // direction control
 
 // right motor on L298N channel B
-#define ENB_R 3 // enable PWM speed control
-#define IN3_R_PIN   25 // direction control
-#define IN4_R_PIN   23 // direction control
+#define ENB_R     3 // enable PWM speed control
+#define IN3_R_PIN 25 // direction control
+#define IN4_R_PIN 23 // direction control
 
 //*************** motors encoders (Hall) sensors definitions
+#define S1motorEncoder_L_PIN 22  // motor encoder S1 A pin
+#define S2motorEncoder_L_PIN 24  // motor encoder S2 B pin 
+#define S1motorEncoder_R_PIN 26  // motor encoder S1 A pin
+#define S2motorEncoder_R_PIN 28  // motor encoder S2 B pin
+
 //setup timer interrupt for motor encoders
 DueTimer encoderTimer = Timer.getAvailable();
 
 volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
 volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
 volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
-
 volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
 volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
 volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
-
 volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
-
-#define S1motorEncoder_L_PIN 22  // motor encoder S1 A pin
-#define S2motorEncoder_L_PIN 24  // motor encoder S2 B pin 
-#define S1motorEncoder_R_PIN 26  // motor encoder S1 A pin
-#define S2motorEncoder_R_PIN 28  // motor encoder S2 B pin
 
 // motor direction
 const byte FORWARD {0};
 const byte BACKWARD {1};
 
-// ISRs
+// ISRs function prototypes
 void ISR_timerEncoder(void); // reads motors sensors
-void ISR_S1_L(void); // increment left motor sensor count
-void ISR_S1_R(void); // increment right motor sensor count
+void ISR_S1_L(void); // maintains left motor sensor count
+void ISR_S1_R(void); // maintains right motor sensor count
 
+// motor control functions prototypes
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
