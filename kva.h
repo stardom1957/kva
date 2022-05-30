@@ -19,7 +19,6 @@ void sendTelemetry(byte);
 void setGPIOs(void);
 void updateDisplayAndIndicators(void);
 void manageOpModeChange(void);
-void strToChar(String);
 
 #ifdef RTC_COMPILE
 boolean kva_rtc_init(void); // to starts RTC

@@ -6,7 +6,7 @@
 #define RTC_COMPILE
 #define MOTOR_CONTROL_COMPILE
 #define SENSORS_COMPILE
-#define PID_COMPILE
+//#define PID_COMPILE
 
 #ifdef COMPILE_MAIN
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
@@ -59,7 +59,7 @@ void run_preset_course(void) {
   motorRightSet(200, FORWARD);
   delay(4000);
   motorAllStop();
-  Serial.println("Both motors STOPED for 3s");
+  Serial.println("Both motors STOPPED for 3s");
   delay(3000);
   Serial.println("Both motors BACKWARD for 4s");
   motorLeftSet(200, BACKWARD);
@@ -82,8 +82,6 @@ void run_preset_course(void) {
   motorAllStop();
   delay(2000);
   Serial.println("___ wait 5 s______");
-
-  //while(true); //we're only doing this once
   delay(5000);
 }
 
@@ -176,14 +174,6 @@ void runOpMode(byte om) {
      standby(); //safest thing to do
   }  
 }
-// put part of a string into char char_buffer
-void strToChar(String s) {
-  memset(char_buffer, 0, sizeof(char_buffer));
-  for (byte i=0; i < s.length(); i++) {
-    char_buffer[i] = s.charAt(i);
-  }
-}
-
 
 void setGPIOs(void) {
  //debug we might use this later
@@ -385,6 +375,6 @@ void loop()
  nexLoop(nex_listen_list);
  manageOpModeChange();
  runOpMode(currentOpMode);
- delay(10); //#TODO for developement. this delay will have to be ajusted later
+ //delay(10); //#TODO for developement. this delay will have to be ajusted later
 }
 #endif //endif for COMPILE_MAIN

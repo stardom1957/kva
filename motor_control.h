@@ -46,8 +46,6 @@ volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough
 const byte FORWARD {0};
 const byte BACKWARD {1};
 
-
-
 // ISRs
 void ISR_timerEncoder(void); // reads motors sensors
 void ISR_S1_L(void); // increment left motor sensor count

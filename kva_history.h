@@ -199,8 +199,13 @@ branch motor_1_to_10 merged to master and deleted
   30.1 left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
        motor encoder is performing ok. Tested in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
        and S2 (encoder B) is ok with reversal of motor.
-  30.2 left motor not working BACKWARD in either TELEOP or FREE_RUN mode:
-    30.2.1 ckecking with spare motor M3 to see if the issue is with L298N <--
+  30.2 another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue.
+  30.3 testing with L298N controler replacement <----
+  30.4 modify ISR that count encoders to take direction in consideration
+
+31. In general:
+  31.1 documentation, photos for motor integration (L298N)
+  31.2 documentation, photos for IR and LIDAR sensors test gig
 
  Working on
  ----------

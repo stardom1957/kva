@@ -10,6 +10,17 @@
 
 #include "Nextion.h"
 
+void strToChar(String);
+
+// put part of a string into char char_buffer
+// needed for HMI text handling
+void strToChar(String s) {
+  memset(char_buffer, 0, sizeof(char_buffer));
+  for (byte i=0; i < s.length(); i++) {
+    char_buffer[i] = s.charAt(i);
+  }
+}
+
 //define some constants for HMI color specific for Nextion
 #define GREEN 1024
 #define GREY 50712
