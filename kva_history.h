@@ -129,13 +129,13 @@ branch motor_1_to_10 merged to master and deleted
 21. Nextion devel is on laptop. copy on kva and document using print screens
    This is project 23 in sketches binder
 
-22. HMI has some issues: branch debug_hmi
+22. HMI has some issues: branch debug_hmi FINISHED
   22.1 page 1 only update comming from page 0 (ok from page 2):
     22.1.2 due ti now version of Nextion Editor, ID numbers of certain objets had changed FIXED
     22.1.2 Removed unnecessary page change button on pages where not needed (like page 1 change on page 1!) DONE
-    22.1.3 commit and merge into master
+    22.1.3 commit and merge into master DONE
 
-23. RTC not responding (on branch ********** debug_rtc ******) DONE
+23. RTC not responding (on branch ********** debug_rtc ******)  FIXED FINISHED
   23.1 tested on sketch on RTC_DS3231_r_glage_v3.ino on Uno: RTC working and date and time set OK
   23.2 replaced on KVA vehicule OK
   23.3 bug RTC not found!:
@@ -159,7 +159,7 @@ branch motor_1_to_10 merged to master and deleted
        - RTC no longuer reachable
     
     23.3.4. Replaced ZS-042 by Deek-Robot RTC DS1307Z with datalogger (microSD card reader)
-      23.3.4.1 SDA will be shifted 5V - 3.3V. Determined from sketch rtc_and_data_logger_on_due on second Arduono Due,
+      23.3.4.1 SDA shifted 5V <-> 3.3V. Determined from sketch rtc_and_data_logger_on_due on second Arduono Due,
                see project binder, section 8.1.
       23.3.4.2 integrated to vehicule in the following manner (as per section 8.1):
         - Arduino Due SDA (3.3V) -> SDA BUS bar -> Wavechare 8-ch. level shifter A4 -> Wavechare 8-ch. level shifter B4 -> mini data-logger SDA
@@ -174,6 +174,8 @@ branch motor_1_to_10 merged to master and deleted
          - measured V (oscilloscope) SDA and SCL 3.4V
          - RTC works perfectly
       23.3.4.3 ran free run and teleop modes several times: RTC works oerfectly during and after
+      23.3.4.4 BUG somtimes RTC is not seen, takes couple ou power cycle to work???
+      23.3.4.5 What about using CJMCU-9306 I2C level shifter?
 
 24. RTC diagnostics and indicators (on branch ********** debug_rtc ******):
   24.1 rtc running?: according to RTClib: isrunning(void)
@@ -204,8 +206,9 @@ branch motor_1_to_10 merged to master and deleted
 30. testing motor Hall encoders in FREE_RUN mode:
   30.1 BUG left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
        motor encoder is performing ok. Tested in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
-       and S2 (encoder B) is ok with reversal of motor.
-  30.2 BUG another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue.
+       and S2 (encoder B) is ok with reversal of motor. Could have happened because I accidentally connected si_L normally on pin 23
+       to 5V! DONE
+  30.2 BUG another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue. DONE
   30.3 testing with L298N controler replacement <----
   30.4 modify ISR that count encoders to take direction in consideration
 
@@ -218,5 +221,6 @@ branch motor_1_to_10 merged to master and deleted
 30 <---
 29
 28
+23.3.4.5 I2C level shifter
  */
 #endif
