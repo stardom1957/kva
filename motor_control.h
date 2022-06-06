@@ -245,39 +245,31 @@ void motor_TELEOP_node_v1(void) {
       motorRightSet(EMERGENCY_SLOW, FORWARD);
     }
     if(ps2x.ButtonReleased(PSB_TRIANGLE)){
+      debugln("motor stop");
       motorAllStop();
       emergency_run = false;
     }
 
     //slow reverse
     if(ps2x.ButtonPressed(PSB_CROSS)){
+      debugln("emergency reverse");
       emergency_run = true;
       motorLeftSet(EMERGENCY_SLOW, BACKWARD);
       motorRightSet(EMERGENCY_SLOW, BACKWARD);
     }   
-    if(ps2x.ButtonReleased(PSB_CROSS)){
-      emergency_run = false;
-      motorAllStop();
-    }
 
     //slow left in place rotation    
     if(ps2x.ButtonPressed(PSB_SQUARE)){
+      debugln("emergency turn left");
       emergency_run = true;
       vehiculeRotateLeft(EMERGENCY_SLOW);
-    }
-    if(ps2x.ButtonReleased(PSB_SQUARE)) {
-      emergency_run = false;
-      motorAllStop();
     }
 
     //slow in place right rotation
     if(ps2x.ButtonPressed(PSB_CIRCLE)){
+       debugln("emergency turn rigth");
        emergency_run = true;
        vehiculeRotateRight(EMERGENCY_SLOW);
-    }
-    if(ps2x.ButtonReleased(PSB_CIRCLE)) {
-      emergency_run = false;
-      motorAllStop();
     }
 
   

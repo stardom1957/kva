@@ -18,7 +18,7 @@
 // when DEBUG is set to 1, replace Serial.print and Serial.println by notting
 // when DEBUG is set to 0, all Serial.print and Serial.println are active
 // ***************************************************************************
-#define DEBUG 0 // 1 is debug 0 is not
+#define DEBUG 1 // 1 is debug 0 is not
 
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
@@ -63,8 +63,10 @@ void run_preset_course(void) {
   motorRightSet(200, FORWARD);
   delay(4000);
   motorAllStop();
+
   Serial.println("Both motors STOPPED for 3s");
   delay(3000);
+
   Serial.println("Both motors BACKWARD for 4s");
   motorLeftSet(200, BACKWARD);
   motorRightSet(200, BACKWARD);

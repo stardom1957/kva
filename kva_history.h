@@ -204,16 +204,17 @@ branch motor_1_to_10 merged to master and deleted
   29.5 name changes for some #define related to motor functions DONE
 
 30. testing motor Hall encoders in FREE_RUN mode:
-  30.1 BUG left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat) and speed is too fast. Right
-       motor encoder is performing ok. Tested in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
-       and S2 (encoder B) is ok with reversal of motor. Could have happened because I accidentally connected si_L normally on pin 23
-       to 5V! DONE
+  30.1 BUG left motor encoders S1 (A) seems not working (seen from oscilloscope, signal is flat), but S2 is fine. Also speed is too fast. Right
+       motor encoder is performing ok. Tested right motor in TELEOP mode: seen from oscilloscope, signal relationship between S1 (encoder A)
+       and S2 (encoder B) in the two motor directions.
+       
+       Could have busted S1 left encoder when I accidentally connected s1_L (normally on pin 23) to 5V pin on Due! DONE
   30.2 BUG another ANOMALY: left motor runs at full speed backward when DUE is beeing reprogrammed. It must be a controler issue. DONE
   30.3 testing with L298N controler replacement <----
   30.4 modify ISR that count encoders to take direction in consideration
 
 31. In general:
-  31.1 documentation, photos for motor integration (L298N)
+  31.1 documentation, photos for motor integration (L298N) DONE
   31.2 documentation, photos for IR and LIDAR sensors test gig
 
  Working on

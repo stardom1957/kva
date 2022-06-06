@@ -30,7 +30,9 @@ void updateDTtoHMI(void);
 void incrementField(int);
 void setRTCfromInput(void);
 
-//opmodes
+//********************
+//opmodes definitions
+//********************
 #define STANDBY 0                        // at rest but diagnostic and communication running
 #define SENSORS_DEVELOPEMENT 15          // as it says
 #define RUN_PRESET_COURSE 30             // executes a series of preset commands
