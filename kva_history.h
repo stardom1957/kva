@@ -215,16 +215,22 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
          S2motorEncoder_R_PIN LOW = FORWARD
          S2motorEncoder_R_PIN HIGH  = BACKWARD
 
-30. PID implementation:
-  30.1 create new kva_pid.h and #DEFINE set DONE
-  30.2 create basic PID class <-- DONE
-  30.2 removed code for motor testing : mode, ISR and timer (archived in 
-  30.3 test pid evalu function w/o motor control
-  30.4 create functions for ramping speed up and down
+  29.3 git commit [pid_devel 99bbb65]
 
-31. In general:
-  31.1 documentation, photos for motor integration (L298N) and insertion in binder
-  31.2 documentation, photos for IR and LIDAR sensors test gig and insertion in binder
+30. removing MEASURE_AND_CALIBRATE_MOTORS mode:
+  30.1 removing code for motor testing : mode, ISR and timer (archived in BACKUPS/motor_testing_code) DONE
+  30.2 upload to DUE and testing
+
+31. PID implementation:
+  31.1 create new kva_pid.h and #DEFINE set DONE
+  31.2 create basic PID class DONE
+  31.2
+  31.3 test pid evalu function w/o motor control
+  31.4 create functions for ramping speed up and down
+
+32. In general:
+  32.1 documentation, photos for motor integration (L298N) and insertion in binder
+  32.2 documentation, photos for IR and LIDAR sensors test gig and insertion in binder
 
  Working on
  ----------

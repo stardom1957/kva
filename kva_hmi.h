@@ -176,12 +176,7 @@ void setOpmodeButtonColors(void) {
     case FREE_RUN:
      bfrun.Set_background_color_bco(GREEN);
      break;
-
-    //************************************************
-    //******** MEASURE_AND_CALIBRATE_MOTORS **********
-    case MEASURE_AND_CALIBRATE_MOTORS:
-     break;
-    
+   
     default:
      ;
   } // end switch(currentOpMode)
@@ -214,11 +209,6 @@ void setOpmodeButtonColors(void) {
     //***************** FREE_RUN *******************
       case FREE_RUN:
        bfrun.Set_background_color_bco(YELLOW);
-      break;
-
-      //************************************************
-      //******** MEASURE_AND_CALIBRATE_MOTORS **********
-      case MEASURE_AND_CALIBRATE_MOTORS:
       break;
     
      default:

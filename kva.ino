@@ -33,7 +33,6 @@
 #define debugln_2arg(x, y)
 #endif
 
-#include <DueTimer.h>
 #include <PS2X_lib.h>  //revised library from KurtE from Github
 
 #ifdef TELEMETRY
@@ -87,34 +86,6 @@ void run_preset_course(void) {
 }
 
 //************ OPMODE ************************
-//**MEASURE_AND_CALIBRATE_MOTORS**************
-
-void measureAndCalibrateMotors(void) {
-  Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
-  motorLeftSet(128, FORWARD);
-  motorRightSet(128, FORWARD);
-  delay(6000); // run for n sec
-  motorAllStop();
-     
-  // display results on Serial Monitor
-  Serial.print("encoderTimerLoopCount= ");
-  Serial.println(encoderTimerLoopCount, DEC);
-  Serial.println("---------------------------");
-  Serial.print("deltaCount_L= ");
-  Serial.println(deltaCount_L, DEC);
-  Serial.print("deltaCount_R= ");
-  Serial.println(deltaCount_R, DEC);
-
-  Serial.println("--------TOTALS------------\n");
-  Serial.print("S1_L_count= ");
-  Serial.println(S1_L_count, DEC);
-  Serial.print("S1_R_count= ");
-  Serial.println(S1_R_count, DEC);
-
-  Serial.println("End of motor measure program.");
-}
-
-//************ OPMODE ************************
 //************ STANDBY ***********************
 
 void standby(void) {
@@ -158,13 +129,6 @@ void runOpMode(byte om) {
     case FREE_RUN:
      currentOpModeName = "FREE RUN";
      free_run();
-     break;
-
-    case MEASURE_AND_CALIBRATE_MOTORS:
-     currentOpModeName = "MESURE MOT.";
-     measureAndCalibrateMotors();
-     // we do this only once then hang here
-     while(true){;}
      break;
     
     default:
@@ -345,13 +309,6 @@ void setup()
     pid[1].setParams(1,0,0,255); // right motor
 
   // attach interrupts for motor encoders
-  attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
-  attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
-
-  //setup timer interrupt for motor encoders
-  encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
-  encoderTimer.attachInterrupt(ISR_timerEncoder);
-  encoderTimer.start();
 
   hmiFound = nexInit(); // start HMI
 

@@ -6,7 +6,6 @@ void set_ps2x();
 void motor_TELEOP_node_v1();
 void run_preset_course(void);
 void free_run(void);
-void measureAndCalibrateMotors(void);
 void standby(void);
 void runOpMode(byte);
 
@@ -36,7 +35,6 @@ void setRTCfromInput(void);
 #define SENSORS_DEVELOPEMENT 15          // as it says
 #define RUN_PRESET_COURSE 30             // executes a series of preset commands
 #define FREE_RUN  35                     // runs in obstacle collision avoidance on
-#define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
 
 char char_buffer[25] = {0};              // C-style char buffer to hold String data
@@ -69,18 +67,6 @@ int  PS2_config_result{254}; // controler never set = 254
 byte PS2_type{0};
 
 //*************** motors encoders (Hall) sensors definitions
-//setup timer interrupt for motor encoders
-DueTimer encoderTimer = Timer.getAvailable();
-
-volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
-volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
-volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
-
-volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
-volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
-volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
-
-volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
 
 const byte S1motorEncoder_L_PIN = 22;  // motor encoder S1 A pin
 const byte S2motorEncoder_L_PIN = 24;  // motor encoder S2 B pin 

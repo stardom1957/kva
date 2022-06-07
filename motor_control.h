@@ -2,9 +2,6 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
-//debug void ISR_timerEncoder(void);
-//debug void ISR_S1_L(void);
-//debug void ISR_S1_R(void);
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
@@ -13,33 +10,6 @@ void motorRightStop(void);
 void motorLeftStop(void);
 void motorAllStop(void);
 
-
-//ISR timer for motor sensor readings
-void ISR_timerEncoder(void) {
-     //debug noInterrupts(); //stop all interrupts
-     //debug possibly just detach this ISR here and reattach at the end
-
-     //S1_L_count for timer period deltaCount_L = S1_L_count - S1_L_count_previous;
-     deltaCount_L = S1_L_count - S1_L_count_previous;
-     S1_L_count_previous = S1_L_count;
-
-     //S1_R_count for timer period deltaCount_R = S1_R_count - S1_R_count_previous;
-     deltaCount_R = S1_R_count - S1_R_count_previous;
-     S1_R_count_previous = S1_R_count;
-     ++encoderTimerLoopCount;
-     // debug interrupts(); //restart all interupts
-}
-
-
-// ISR for the motor sensor counters
-
-void ISR_S1_L(void) {
-  ++S1_L_count;
-}
-
-void ISR_S1_R(void) {
-  ++S1_R_count;
-}
 
 // this set of motor functions are use for motor control in all
 // the modes that require motor control by software.
