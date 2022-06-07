@@ -199,6 +199,10 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
     29.1.3 S2 <- Oscilloscope ch2 probe connected to cable MS3 (pin 24) DONE
     29.1.4 ch1 is reference trigger DONE
     29.1.5 signals are ok :: encoders are OK DONE
+    29.1.6 direction (tested in TELEOP mode):
+      - S1motorEncoder_L_PIN high (always):
+         S2motorEncoder_L_PIN High = FORWARD
+         S2motorEncoder_L_PIN LOW  = BACKWARD
 
   29.2 Right motor:
     29.2.1 connector MS3  (services pins 22, 24, 26, 28) temporalily disconnected from DUE DONE
@@ -206,10 +210,15 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
     29.2.3 S2 <- Oscilloscope ch2 probe connected to cable MS3 (pin 28) DONE
     29.2.4 ch1 is reference trigger DONE
     29.2.5 signals are ok :: encoders are OK DONE
+    29.2.6 direction (tested in TELEOP mode):
+      - S1motorEncoder_R_PIN high (always):
+         S2motorEncoder_R_PIN LOW = FORWARD
+         S2motorEncoder_R_PIN HIGH  = BACKWARD
 
 30. PID implementation:
   30.1 create new kva_pid.h and #DEFINE set DONE
-  30.2 create basic PID class <--
+  30.2 create basic PID class <-- DONE
+  30.2 removed code for motor testing : mode, ISR and timer (archived in 
   30.3 test pid evalu function w/o motor control
   30.4 create functions for ramping speed up and down
 
