@@ -2,9 +2,9 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
-void ISR_timerEncoder(void);
-void ISR_S1_L(void);
-void ISR_S1_R(void);
+//debug void ISR_timerEncoder(void);
+//debug void ISR_S1_L(void);
+//debug void ISR_S1_R(void);
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
@@ -12,6 +12,7 @@ void motorLeftSet(int, byte);
 void motorRightStop(void);
 void motorLeftStop(void);
 void motorAllStop(void);
+
 
 //ISR timer for motor sensor readings
 void ISR_timerEncoder(void) {
@@ -29,7 +30,9 @@ void ISR_timerEncoder(void) {
      // debug interrupts(); //restart all interupts
 }
 
+
 // ISR for the motor sensor counters
+
 void ISR_S1_L(void) {
   ++S1_L_count;
 }
@@ -52,7 +55,7 @@ void motorRightSet(int speed, byte direction) {
    }
    break;
 
-  case REVERSE:
+  case BACKWARD:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
      digitalWrite(IN3, HIGH);
@@ -68,13 +71,13 @@ void motorRightSet(int speed, byte direction) {
 
 // rotate the vehicule in place l and r
 void vehiculeRotateRight(int speed) {
- motorRightSet(speed, REVERSE);
+ motorRightSet(speed, BACKWARD);
  motorLeftSet(speed, FORWARD);
 }
 
 void vehiculeRotateLeft(int speed) {
  motorRightSet(speed, FORWARD);
- motorLeftSet(speed, REVERSE);
+ motorLeftSet(speed, BACKWARD);
 }
 
 void motorLeftSet(int speed, byte direction) {
@@ -88,7 +91,7 @@ void motorLeftSet(int speed, byte direction) {
    }
    break;
 
-  case REVERSE:
+  case BACKWARD:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
      digitalWrite(IN1_PIN, HIGH);
@@ -188,7 +191,7 @@ void motor_TELEOP_node_v1(void) {
 
   if(ps2x.Button(PSB_L1)) {
 
-    //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
+    //*************EMERGENCY ROTATION AND FORWARD/BACKWARD ************
     //slow forward
     if(ps2x.ButtonPressed(PSB_TRIANGLE)){
       debugln("emergency forward");
@@ -204,8 +207,8 @@ void motor_TELEOP_node_v1(void) {
     //slow reverse
     if(ps2x.ButtonPressed(PSB_CROSS)){
       emergency_run = true;
-      motorLeftSet(EMERGENCY_SLOW, REVERSE);
-      motorRightSet(EMERGENCY_SLOW, REVERSE);
+      motorLeftSet(EMERGENCY_SLOW, BACKWARD);
+      motorRightSet(EMERGENCY_SLOW, BACKWARD);
     }   
     if(ps2x.ButtonReleased(PSB_CROSS)){
       emergency_run = false;
@@ -241,8 +244,8 @@ void motor_TELEOP_node_v1(void) {
 
    if (ps2RY >= (127 + atRestZone)) {
      // This is reverse
-     leftMotorDirection = REVERSE;
-     rightMotorDirection = REVERSE;
+     leftMotorDirection = BACKWARD;
+     rightMotorDirection = BACKWARD;
 
      //motor speeds is determined from stick values ps2RY
      // we need to map the reading from 0 to 255

@@ -12,6 +12,7 @@
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
 #define TELEMETRY               // compile telemetry code
+#define PID_COMPILE // compile kva_pid.h
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by notting when not needed
@@ -44,7 +45,9 @@
 #include "sensors.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
-
+#ifdef PID_COMPILE
+ #include "kva_pid.h"
+#endif
 
 //************** OPMODE ***************************
 //*********** RUN_PRESET_COURSE *******************
@@ -57,20 +60,20 @@ void run_preset_course(void) {
   motorAllStop();
   Serial.println("Both motors STOPED for 3s");
   delay(3000);
-  Serial.println("Both motors REVERSE for 4s");
-  motorLeftSet(200, REVERSE);
-  motorRightSet(200, REVERSE);
+  Serial.println("Both motors BACKWARD for 4s");
+  motorLeftSet(200, BACKWARD);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor FORWARD and Right motor REVERSE for 4s");
+  Serial.println("Left motor FORWARD and Right motor BACKWARD for 4s");
   motorAllStop();
   motorLeftSet(200, FORWARD);
-  motorRightSet(200, REVERSE);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor REVERSE and Right motor FORWARD for 4s");
+  Serial.println("Left motor BACKWARD and Right motor FORWARD for 4s");
   motorAllStop();
-  motorLeftSet(200, REVERSE);
+  motorLeftSet(200, BACKWARD);
   motorRightSet(200, FORWARD);
   delay(4000);
      
@@ -117,21 +120,6 @@ void measureAndCalibrateMotors(void) {
 void standby(void) {
   // #TODO
   motorAllStop();
-
-  /*  make sure motors are stopped
-   *  get status of Nextion display
-   *  get status of RTC
-   *  - get time values from RTC
-   *  get status of SD card adaptor
-   *  get status of IR sensor array
-   *  get status of IMU
-   *  - get attitude date from IMU
-   *  get status of message buffer
-   *  get status of serial comm to remote HMI
-   *  
-   *  send relevant telemetry
-   * 
-  */
 }
 
 //************ OPMODE ************************
@@ -141,11 +129,6 @@ void free_run(void) {
  // #TODO
      motorLeftSet(EMERGENCY_SLOW, FORWARD);
      motorRightSet(EMERGENCY_SLOW, FORWARD);
-
- /*
-  * get status of IR array
-  * get obstacle
- */
 }
 
 // runs the selected opMode
@@ -356,6 +339,10 @@ void setup()
 
   setGPIOs();
   motorAllStop();
+
+  // prepare PID for motor control
+    pid[0].setParams(1,0,0,255); // left motor
+    pid[1].setParams(1,0,0,255); // right motor
 
   // attach interrupts for motor encoders
   attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);

@@ -89,7 +89,7 @@ const byte S2motorEncoder_R_PIN = 28;  // motor encoder S2 pin
 
 // motor direction
 const byte FORWARD {0};
-const byte REVERSE {1};
+const byte BACKWARD {1};
 
 //*************************************************************
 //definitions for Ps2 controler for teleoperation
