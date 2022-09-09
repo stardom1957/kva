@@ -94,11 +94,6 @@ PS2X ps2x; // create PS2 Controller Class object
  *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
 */
 
-//******************************************************
-// definitions for MEASURE_AND_CALIBRATE_MOTORS opMode
-//******************************************************
-#define ENCODER_MEASURE_INTERVAL 100000 // sampling interval = timer interval; set in microseconds (10e-6s)
-
 //*******************************************
 //************* motor control definitions
 //*******************************************

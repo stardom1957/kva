@@ -215,18 +215,23 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
          S2motorEncoder_R_PIN LOW = FORWARD
          S2motorEncoder_R_PIN HIGH  = BACKWARD
 
-  29.3 git commit [pid_devel 99bbb65]
+  29.3 git commit [pid_devel 99bbb65] DONE
 
-30. removing MEASURE_AND_CALIBRATE_MOTORS mode:
+30. removing MEASURE_AND_CALIBRATE_MOTORS mode: FINISHED
   30.1 removing code for motor testing : mode, ISR and timer (archived in BACKUPS/motor_testing_code) DONE
-  30.2 upload to DUE and testing
+  30.2 upload to DUE and testing all modes DONE
+  30.3 git commit [pid_devel 7601e08] DONE
 
 31. PID implementation:
-  31.1 create new kva_pid.h and #DEFINE set DONE
+  31.1 create new kva_pid.h 
   31.2 create basic PID class DONE
-  31.2
-  31.3 test pid evalu function w/o motor control
+  31.2 complete code in loop <--
+    compare setMotor function with my own motor functions to determine usage of direction DONE
+  31.3 create ISR for motor S1 counts:
+    31.3.1 one that count according to motor direction (based on S2)
+    31.3.2 one that only calculate the difference in count during one cycle <----
   31.4 create functions for ramping speed up and down
+  31.5 test pid evalu function w/o motor control
 
 32. In general:
   32.1 documentation, photos for motor integration (L298N) and insertion in binder
@@ -234,7 +239,7 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
 
  Working on
  ----------
-30 <---
+31.1 <---
 29
 28
 23.3.4.5 I2C level shifter

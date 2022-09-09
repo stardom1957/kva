@@ -98,8 +98,39 @@ void standby(void) {
 
 void free_run(void) {
  // #TODO
-     motorLeftSet(EMERGENCY_SLOW, FORWARD);
-     motorRightSet(EMERGENCY_SLOW, FORWARD);
+  int target_L = 150;  //in encoder counts
+  int target_R = EMERGENCY_SLOW;
+     
+  motorLeftSet(EMERGENCY_SLOW, FORWARD);
+  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
+
+  // do PID
+  // ***********************
+  // time difference
+  long currTime = micros();
+  float deltaT = ((float) (currTime - prevTime))/( 1.0e6 );
+  prevTime = currTime;
+
+  // Read the S1 encoders positions
+  int pos_actual_L;
+  //debug int pos_actual_R;
+  noInterrupts(); // disable interrupts temporarily while reading
+   pos_actual_L = posi_L;
+   //debug pos_actual_R = posi_R;
+  interrupts(); // turn interrupts back on
+
+  // evaluate PID for each motor
+  int pwr, dir;
+  // evaluate the control signal for left and right motor
+  pid_L.evalu(pos_actual_L, target_L, deltaT, pwr, dir);
+  //debug pid_R.evalu(pos_actual_R,target_R,deltaT,pwr,dir);
+
+  // signal the motor
+  //Serial.print("pwr: ");
+  Serial.println(pwr);
+  //Serial.print(", dir: ");
+  Serial.println(dir);
+  motorLeftSet(pwr, dir);
 }
 
 // runs the selected opMode
@@ -145,7 +176,6 @@ void strToChar(String s) {
 
 
 void setGPIOs(void) {
- //debug we might use this later
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -304,11 +334,13 @@ void setup()
   setGPIOs();
   motorAllStop();
 
-  // prepare PID for motor control
-    pid[0].setParams(1,0,0,255); // left motor
-    pid[1].setParams(1,0,0,255); // right motor
+  // prepare PID controlers for L & R motors
+    pid_L.setParams(1, 0.25, 1, 255); // left motor
+    pid_R.setParams(1, 0, 0, 255); // right motor
 
-  // attach interrupts for motor encoders
+  // attach interrupt to S1 encoder of each motor
+  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
+  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
 
   hmiFound = nexInit(); // start HMI
 
@@ -340,6 +372,7 @@ void loop()
  updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();
+ currentOpMode = FREE_RUN;
  runOpMode(currentOpMode);
  delay(10); //#TODO for developement. this delay will have to be ajusted later
 }

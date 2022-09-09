@@ -10,6 +10,31 @@ void motorRightStop(void);
 void motorLeftStop(void);
 void motorAllStop(void);
 
+void motorLeftSet(int speed, byte direction) {
+ switch (direction) {
+  case FORWARD:
+   // moteur avance
+   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
+     digitalWrite(IN1_PIN, LOW);
+     digitalWrite(IN2_PIN, HIGH);
+     analogWrite(ENA_L_PIN, speed);
+   }
+   break;
+
+  case BACKWARD:
+   // moteur recule
+   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
+     digitalWrite(IN1_PIN, HIGH);
+     digitalWrite(IN2_PIN, LOW);
+     analogWrite(ENA_L_PIN, speed);
+   }
+   break;
+
+   default:
+     ; //nothing
+ }
+}
+
 
 // this set of motor functions are use for motor control in all
 // the modes that require motor control by software.
@@ -48,31 +73,6 @@ void vehiculeRotateRight(int speed) {
 void vehiculeRotateLeft(int speed) {
  motorRightSet(speed, FORWARD);
  motorLeftSet(speed, BACKWARD);
-}
-
-void motorLeftSet(int speed, byte direction) {
- switch (direction) {
-  case FORWARD:
-   // moteur droit avance
-   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, LOW);
-     digitalWrite(IN2_PIN, HIGH);
-     analogWrite(ENA_L_PIN, speed);
-   }
-   break;
-
-  case BACKWARD:
-   // moteur droit recule
-   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, HIGH);
-     digitalWrite(IN2_PIN, LOW);
-     analogWrite(ENA_L_PIN, speed);
-   }
-   break;
-
-   default:
-     ; //nothing
- }
 }
 
 void motorRightStop(void) {
