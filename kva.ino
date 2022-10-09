@@ -364,15 +364,20 @@ void setup()
   currentOpMode = STANDBY;
 
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
+  digitalWrite(FLIPFLOP_PORT, LOW);
   debugln("Setup finished\n");
 }
 
 void loop()
 {
+ //
+ // reverse FLIPFLOP_PORT
+ // to be monitored externally
+ //
+ digitalWrite(FLIPFLOP_PORT, !digitalRead(FLIPFLOP_PORT));
  updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();
- currentOpMode = FREE_RUN;
  runOpMode(currentOpMode);
  delay(10); //#TODO for developement. this delay will have to be ajusted later
 }

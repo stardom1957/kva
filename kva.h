@@ -15,6 +15,11 @@ byte storeTopic(byte, String, char, byte);
 void sendTelemetry(byte);
 #endif
 
+// define flipflop port to monitor
+// this will change every time the loop is run
+//
+#define FLIPFLOP_PORT 37
+
 void setGPIOs(void);
 void updateDisplayAndIndicators(void);
 void manageOpModeChange(void);

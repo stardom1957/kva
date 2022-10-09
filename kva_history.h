@@ -237,10 +237,12 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
   32.1 documentation, photos for motor integration (L298N) and insertion in binder
   32.2 documentation, photos for IR and LIDAR sensors test gig and insertion in binder
 
+33. Implemeting a digital "flip flop" for  time off main loop:
+  33.1 variable flipflop
+
  Working on
  ----------
-31.1 <---
-29
+33 <---
 28
 23.3.4.5 I2C level shifter
  */
