@@ -1,5 +1,6 @@
 ## Mesure de la période d'exécution des opérations - mise en oeuvre d'un signal de type « flip flop »
-Opération réalisé en septembre 2022
+Opération réalisé en septembre 2022<br>
+ATTENTION : les changements sont inscrits dans la branche pid_devel, or cette fonctionnalité doit faire partie intégrante de kva. Je décide donc de continuer la mise en oeuvre des flip flops dans cette branche car la fonctionnalité sera fusiionner dans master en même temps que celle de PID.<br>
 
 Nous avion commencé la mise en oeuvre de ce projet lors de l'une de nos rencontre du **mois de septembre**.<br>
 À cette occasion nous avons installé le premier « flipflop » au début de la boucle principale **loop()** dans le module **kva.ino** en dirigeant la sortie du flip flop vers le port 37 du Uno. Pour chaque mode d'opération (STANDBY, FREE_RUN et TELEOP), nous avons mesuré les statistiques de la bascule du port 37 à l'aide d'un oscilloscope en portant notre attention sur la « période » p du signal.<br><br>
