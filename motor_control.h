@@ -34,11 +34,8 @@ void motorLeftSet(int speed, byte direction) {
      ; //nothing
  }
 }
-
-
 // this set of motor functions are use for motor control in all
 // the modes that require motor control by software.
-
 void motorRightSet(int speed, byte direction) {
  switch (direction) {
   case FORWARD:

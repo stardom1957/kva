@@ -228,7 +228,7 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
   31.2 complete code in loop <--
     compare setMotor function with my own motor functions to determine usage of direction DONE
   31.3 create ISR for motor S1 counts:
-    31.3.1 one that count according to motor direction (based on S2)
+    31.3.1 one that counts according to motor direction (based on S2)
     31.3.2 one that only calculate the difference in count during one cycle <----
   31.4 create functions for ramping speed up and down
   31.5 test pid evalu function w/o motor control

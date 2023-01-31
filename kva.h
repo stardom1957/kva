@@ -103,12 +103,12 @@ PS2X ps2x; // create PS2 Controller Class object
 //************* motor control definitions
 //*******************************************
 
-// left motor on L298N channel A
+// left motor on L298N (channel A)
 #define ENA_L_PIN 4 // pwm pin
 #define IN1_PIN   29
 #define IN2_PIN   27
 
-// right motor on L298N channel B
+// right motor on L298N (channel B)
 //#define ENB_R 2 // pwm pin
 #define ENB_R 3 // pwm pin
 #define IN3   25

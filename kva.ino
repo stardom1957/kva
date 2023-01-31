@@ -33,7 +33,7 @@
 #define debugln_2arg(x, y)
 #endif
 
-#include <PS2X_lib.h>  //revised library from KurtE from Github
+#include <PS2X_lib.h>  //for teleoperation with PS2 style remote. Revised KurtE library (Github)
 
 #ifdef TELEMETRY
 #include "telemetry.h"
@@ -97,6 +97,16 @@ void standby(void) {
 //************ FREE_RUN ***********************
 
 void free_run(void) {
+ // test
+  int motor_offset{20};
+  motorLeftSet(200-motor_offset, FORWARD);
+  motorRightSet(200, FORWARD);  
+  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
+}
+
+
+/*debug
+void free_run(void) {
  // #TODO
   int target_L = 150;  //in encoder counts
   int target_R = EMERGENCY_SLOW;
@@ -132,6 +142,7 @@ void free_run(void) {
   Serial.println(dir);
   motorLeftSet(pwr, dir);
 }
+*/
 
 // runs the selected opMode
 void runOpMode(byte om) {
@@ -341,6 +352,11 @@ void setup()
   // attach interrupt to S1 encoder of each motor
   attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
   attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
+
+  //setup timer interrupt for motor encoders
+  encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
+  encoderTimer.attachInterrupt(ISR_timerEncoder);
+  encoderTimer.start();
 
   hmiFound = nexInit(); // start HMI
 

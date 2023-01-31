@@ -50,7 +50,7 @@ class SimplePID {
 
   public:
    // constructor
-   SimplePID(): kp(1.0), kd(0.0), ki(0.0), umax(255), eprev(0.0), eintegral(0.0){}
+   SimplePID(): kp(0.1), kd(0.0), ki(0.0), umax(255), eprev(0.0), eintegral(0.0){}
 
    // set the PID parameters
    void setParams(float kpIn, float kdIn, float kiIn, float umaxIn) {
