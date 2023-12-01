@@ -95,7 +95,7 @@ void standby(void) {
 
 //************ OPMODE ************************
 //************ FREE_RUN ***********************
-
+/*
 void free_run(void) {
  // test
   int motor_offset{20};
@@ -103,9 +103,8 @@ void free_run(void) {
   motorRightSet(200, FORWARD);  
   //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
 }
+*/
 
-
-/*debug
 void free_run(void) {
  // #TODO
   int target_L = 150;  //in encoder counts
@@ -142,7 +141,7 @@ void free_run(void) {
   Serial.println(dir);
   motorLeftSet(pwr, dir);
 }
-*/
+
 
 // runs the selected opMode
 void runOpMode(byte om) {
