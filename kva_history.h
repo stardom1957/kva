@@ -186,15 +186,64 @@ branch motor_1_to_10 merged to master and deleted
 
 28. work on issue 21: document HMI i binder and copy code in kva folder
 
-29. PID implementation:
-  29.1  (**** on branch pid_developpement ****)
-  29.2 going in a streat line (L == R)
-  29.3 regular rotation (maintaining difference between L & R)
-  29.4 ramping speed up and down
+branch pid_developpement_old abandonned but kept (TELEOP not working anymore)
+this was in pid_developpement_old
+see binder, section    for details.
+
+vvvvvvvvv on branch pid_devel vvvvvvvv
+
+29. testing motor Hall encoders in FREE_RUN mode: FINISHED
+  29.1 Left motor:
+    29.1.1 connector MS3  (services pins 22, 24, 26, 28) temporalily disconnected from DUE DONE
+    29.1.2 S1 <- Oscilloscope ch1 probe connected to cable MS3 (pin 22) DONE
+    29.1.3 S2 <- Oscilloscope ch2 probe connected to cable MS3 (pin 24) DONE
+    29.1.4 ch1 is reference trigger DONE
+    29.1.5 signals are ok :: encoders are OK DONE
+    29.1.6 direction (tested in TELEOP mode):
+      - S1motorEncoder_L_PIN high (always):
+         S2motorEncoder_L_PIN High = FORWARD
+         S2motorEncoder_L_PIN LOW  = BACKWARD
+
+  29.2 Right motor:
+    29.2.1 connector MS3  (services pins 22, 24, 26, 28) temporalily disconnected from DUE DONE
+    29.2.2 S1 <- Oscilloscope ch1 probe connected to cable MS3 (pin 26) DONE
+    29.2.3 S2 <- Oscilloscope ch2 probe connected to cable MS3 (pin 28) DONE
+    29.2.4 ch1 is reference trigger DONE
+    29.2.5 signals are ok :: encoders are OK DONE
+    29.2.6 direction (tested in TELEOP mode):
+      - S1motorEncoder_R_PIN high (always):
+         S2motorEncoder_R_PIN LOW = FORWARD
+         S2motorEncoder_R_PIN HIGH  = BACKWARD
+
+  29.3 git commit [pid_devel 99bbb65] DONE
+
+30. removing MEASURE_AND_CALIBRATE_MOTORS mode: FINISHED
+  30.1 removing code for motor testing : mode, ISR and timer (archived in BACKUPS/motor_testing_code) DONE
+  30.2 upload to DUE and testing all modes DONE
+  30.3 git commit [pid_devel 7601e08] DONE
+
+31. PID implementation:
+  31.1 create new kva_pid.h 
+  31.2 create basic PID class DONE
+  31.2 complete code in loop <--
+    compare setMotor function with my own motor functions to determine usage of direction DONE
+  31.3 create ISR for motor S1 counts:
+    31.3.1 one that counts according to motor direction (based on S2)
+    31.3.2 one that only calculate the difference in count during one cycle <----
+  31.4 create functions for ramping speed up and down
+  31.5 test pid evalu function w/o motor control
+
+32. In general:
+  32.1 documentation, photos for motor integration (L298N) and insertion in binder
+  32.2 documentation, photos for IR and LIDAR sensors test gig and insertion in binder
+
+33. Implemeting a digital "flip flop" for  time off main loop:
+  33.1 variable flipflop
 
  Working on
  ----------
-29
+33 <---
 28
+23.3.4.5 I2C level shifter
  */
 #endif

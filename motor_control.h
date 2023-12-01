@@ -2,9 +2,6 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
-void ISR_timerEncoder(void);
-void ISR_S1_L(void);
-void ISR_S1_R(void);
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
@@ -13,34 +10,32 @@ void motorRightStop(void);
 void motorLeftStop(void);
 void motorAllStop(void);
 
-//ISR timer for motor sensor readings
-void ISR_timerEncoder(void) {
-     //debug noInterrupts(); //stop all interrupts
-     //debug possibly just detach this ISR here and reattach at the end
+void motorLeftSet(int speed, byte direction) {
+ switch (direction) {
+  case FORWARD:
+   // moteur avance
+   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
+     digitalWrite(IN1_PIN, LOW);
+     digitalWrite(IN2_PIN, HIGH);
+     analogWrite(ENA_L_PIN, speed);
+   }
+   break;
 
-     //S1_L_count for timer period deltaCount_L = S1_L_count - S1_L_count_previous;
-     deltaCount_L = S1_L_count - S1_L_count_previous;
-     S1_L_count_previous = S1_L_count;
+  case BACKWARD:
+   // moteur recule
+   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
+     digitalWrite(IN1_PIN, HIGH);
+     digitalWrite(IN2_PIN, LOW);
+     analogWrite(ENA_L_PIN, speed);
+   }
+   break;
 
-     //S1_R_count for timer period deltaCount_R = S1_R_count - S1_R_count_previous;
-     deltaCount_R = S1_R_count - S1_R_count_previous;
-     S1_R_count_previous = S1_R_count;
-     ++encoderTimerLoopCount;
-     // debug interrupts(); //restart all interupts
+   default:
+     ; //nothing
+ }
 }
-
-// ISR for the motor sensor counters
-void ISR_S1_L(void) {
-  ++S1_L_count;
-}
-
-void ISR_S1_R(void) {
-  ++S1_R_count;
-}
-
 // this set of motor functions are use for motor control in all
 // the modes that require motor control by software.
-
 void motorRightSet(int speed, byte direction) {
  switch (direction) {
   case FORWARD:
@@ -52,7 +47,7 @@ void motorRightSet(int speed, byte direction) {
    }
    break;
 
-  case REVERSE:
+  case BACKWARD:
    // moteur droit recule
    if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
      digitalWrite(IN3, HIGH);
@@ -68,38 +63,13 @@ void motorRightSet(int speed, byte direction) {
 
 // rotate the vehicule in place l and r
 void vehiculeRotateRight(int speed) {
- motorRightSet(speed, REVERSE);
+ motorRightSet(speed, BACKWARD);
  motorLeftSet(speed, FORWARD);
 }
 
 void vehiculeRotateLeft(int speed) {
  motorRightSet(speed, FORWARD);
- motorLeftSet(speed, REVERSE);
-}
-
-void motorLeftSet(int speed, byte direction) {
- switch (direction) {
-  case FORWARD:
-   // moteur droit avance
-   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, LOW);
-     digitalWrite(IN2_PIN, HIGH);
-     analogWrite(ENA_L_PIN, speed);
-   }
-   break;
-
-  case REVERSE:
-   // moteur droit recule
-   if (speed >= MOTOR_LOWER_PWM_LIMIT && speed <= 255) {
-     digitalWrite(IN1_PIN, HIGH);
-     digitalWrite(IN2_PIN, LOW);
-     analogWrite(ENA_L_PIN, speed);
-   }
-   break;
-
-   default:
-     ; //nothing
- }
+ motorLeftSet(speed, BACKWARD);
 }
 
 void motorRightStop(void) {
@@ -188,7 +158,7 @@ void motor_TELEOP_node_v1(void) {
 
   if(ps2x.Button(PSB_L1)) {
 
-    //*************EMERGENCY ROTATION AND FORWARD/REVERSE ************
+    //*************EMERGENCY ROTATION AND FORWARD/BACKWARD ************
     //slow forward
     if(ps2x.ButtonPressed(PSB_TRIANGLE)){
       debugln("emergency forward");
@@ -204,8 +174,8 @@ void motor_TELEOP_node_v1(void) {
     //slow reverse
     if(ps2x.ButtonPressed(PSB_CROSS)){
       emergency_run = true;
-      motorLeftSet(EMERGENCY_SLOW, REVERSE);
-      motorRightSet(EMERGENCY_SLOW, REVERSE);
+      motorLeftSet(EMERGENCY_SLOW, BACKWARD);
+      motorRightSet(EMERGENCY_SLOW, BACKWARD);
     }   
     if(ps2x.ButtonReleased(PSB_CROSS)){
       emergency_run = false;
@@ -241,8 +211,8 @@ void motor_TELEOP_node_v1(void) {
 
    if (ps2RY >= (127 + atRestZone)) {
      // This is reverse
-     leftMotorDirection = REVERSE;
-     rightMotorDirection = REVERSE;
+     leftMotorDirection = BACKWARD;
+     rightMotorDirection = BACKWARD;
 
      //motor speeds is determined from stick values ps2RY
      // we need to map the reading from 0 to 255

@@ -12,6 +12,7 @@
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
 #define TELEMETRY               // compile telemetry code
+#define PID_COMPILE // compile kva_pid.h
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by notting when not needed
@@ -32,8 +33,7 @@
 #define debugln_2arg(x, y)
 #endif
 
-#include <DueTimer.h>
-#include <PS2X_lib.h>  //revised library from KurtE from Github
+#include <PS2X_lib.h>  //for teleoperation with PS2 style remote. Revised KurtE library (Github)
 
 #ifdef TELEMETRY
 #include "telemetry.h"
@@ -44,7 +44,9 @@
 #include "sensors.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
-
+#ifdef PID_COMPILE
+ #include "kva_pid.h"
+#endif
 
 //************** OPMODE ***************************
 //*********** RUN_PRESET_COURSE *******************
@@ -57,20 +59,20 @@ void run_preset_course(void) {
   motorAllStop();
   Serial.println("Both motors STOPED for 3s");
   delay(3000);
-  Serial.println("Both motors REVERSE for 4s");
-  motorLeftSet(200, REVERSE);
-  motorRightSet(200, REVERSE);
+  Serial.println("Both motors BACKWARD for 4s");
+  motorLeftSet(200, BACKWARD);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor FORWARD and Right motor REVERSE for 4s");
+  Serial.println("Left motor FORWARD and Right motor BACKWARD for 4s");
   motorAllStop();
   motorLeftSet(200, FORWARD);
-  motorRightSet(200, REVERSE);
+  motorRightSet(200, BACKWARD);
   delay(4000);
 
-  Serial.println("Left motor REVERSE and Right motor FORWARD for 4s");
+  Serial.println("Left motor BACKWARD and Right motor FORWARD for 4s");
   motorAllStop();
-  motorLeftSet(200, REVERSE);
+  motorLeftSet(200, BACKWARD);
   motorRightSet(200, FORWARD);
   delay(4000);
      
@@ -84,69 +86,62 @@ void run_preset_course(void) {
 }
 
 //************ OPMODE ************************
-//**MEASURE_AND_CALIBRATE_MOTORS**************
-
-void measureAndCalibrateMotors(void) {
-  Serial.println("Timer set for 10 readings per second. Delay is 6 sec.");
-  motorLeftSet(128, FORWARD);
-  motorRightSet(128, FORWARD);
-  delay(6000); // run for n sec
-  motorAllStop();
-     
-  // display results on Serial Monitor
-  Serial.print("encoderTimerLoopCount= ");
-  Serial.println(encoderTimerLoopCount, DEC);
-  Serial.println("---------------------------");
-  Serial.print("deltaCount_L= ");
-  Serial.println(deltaCount_L, DEC);
-  Serial.print("deltaCount_R= ");
-  Serial.println(deltaCount_R, DEC);
-
-  Serial.println("--------TOTALS------------\n");
-  Serial.print("S1_L_count= ");
-  Serial.println(S1_L_count, DEC);
-  Serial.print("S1_R_count= ");
-  Serial.println(S1_R_count, DEC);
-
-  Serial.println("End of motor measure program.");
-}
-
-//************ OPMODE ************************
 //************ STANDBY ***********************
 
 void standby(void) {
   // #TODO
   motorAllStop();
-
-  /*  make sure motors are stopped
-   *  get status of Nextion display
-   *  get status of RTC
-   *  - get time values from RTC
-   *  get status of SD card adaptor
-   *  get status of IR sensor array
-   *  get status of IMU
-   *  - get attitude date from IMU
-   *  get status of message buffer
-   *  get status of serial comm to remote HMI
-   *  
-   *  send relevant telemetry
-   * 
-  */
 }
 
 //************ OPMODE ************************
 //************ FREE_RUN ***********************
+/*
+void free_run(void) {
+ // test
+  int motor_offset{20};
+  motorLeftSet(200-motor_offset, FORWARD);
+  motorRightSet(200, FORWARD);  
+  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
+}
+*/
 
 void free_run(void) {
  // #TODO
-     motorLeftSet(EMERGENCY_SLOW, FORWARD);
-     motorRightSet(EMERGENCY_SLOW, FORWARD);
+  int target_L = 150;  //in encoder counts
+  int target_R = EMERGENCY_SLOW;
+     
+  motorLeftSet(EMERGENCY_SLOW, FORWARD);
+  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
 
- /*
-  * get status of IR array
-  * get obstacle
- */
+  // do PID
+  // ***********************
+  // time difference
+  long currTime = micros();
+  float deltaT = ((float) (currTime - prevTime))/( 1.0e6 );
+  prevTime = currTime;
+
+  // Read the S1 encoders positions
+  int pos_actual_L;
+  //debug int pos_actual_R;
+  noInterrupts(); // disable interrupts temporarily while reading
+   pos_actual_L = posi_L;
+   //debug pos_actual_R = posi_R;
+  interrupts(); // turn interrupts back on
+
+  // evaluate PID for each motor
+  int pwr, dir;
+  // evaluate the control signal for left and right motor
+  pid_L.evalu(pos_actual_L, target_L, deltaT, pwr, dir);
+  //debug pid_R.evalu(pos_actual_R,target_R,deltaT,pwr,dir);
+
+  // signal the motor
+  //Serial.print("pwr: ");
+  Serial.println(pwr);
+  //Serial.print(", dir: ");
+  Serial.println(dir);
+  motorLeftSet(pwr, dir);
 }
+
 
 // runs the selected opMode
 void runOpMode(byte om) {
@@ -176,13 +171,6 @@ void runOpMode(byte om) {
      currentOpModeName = "FREE RUN";
      free_run();
      break;
-
-    case MEASURE_AND_CALIBRATE_MOTORS:
-     currentOpModeName = "MESURE MOT.";
-     measureAndCalibrateMotors();
-     // we do this only once then hang here
-     while(true){;}
-     break;
     
     default:
      standby(); //safest thing to do
@@ -198,7 +186,6 @@ void strToChar(String s) {
 
 
 void setGPIOs(void) {
- //debug we might use this later
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -357,9 +344,13 @@ void setup()
   setGPIOs();
   motorAllStop();
 
-  // attach interrupts for motor encoders
-  attachInterrupt(S1motorEncoder_L_PIN, ISR_S1_L, CHANGE);
-  attachInterrupt(S1motorEncoder_R_PIN, ISR_S1_R, CHANGE);
+  // prepare PID controlers for L & R motors
+    pid_L.setParams(1, 0.25, 1, 255); // left motor
+    pid_R.setParams(1, 0, 0, 255); // right motor
+
+  // attach interrupt to S1 encoder of each motor
+  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
+  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
 
   //setup timer interrupt for motor encoders
   encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
@@ -388,11 +379,17 @@ void setup()
   currentOpMode = STANDBY;
 
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
+  digitalWrite(FLIPFLOP_PORT, LOW);
   debugln("Setup finished\n");
 }
 
 void loop()
 {
+ //
+ // reverse FLIPFLOP_PORT
+ // to be monitored externally
+ //
+ digitalWrite(FLIPFLOP_PORT, !digitalRead(FLIPFLOP_PORT));
  updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();

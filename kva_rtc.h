@@ -15,7 +15,8 @@ uint32_t daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 // returns date and time w or w/o seconds
 String strDateTime(bool seconds) {
   now = rtc.now();
-  String dt{NULL};
+  //String dt{NULL};
+  String dt{""};
   dt = now.year();
   dt += "-";
   if (now.month() < 10) dt += "0";

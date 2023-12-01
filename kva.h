@@ -6,7 +6,6 @@ void set_ps2x();
 void motor_TELEOP_node_v1();
 void run_preset_course(void);
 void free_run(void);
-void measureAndCalibrateMotors(void);
 void standby(void);
 void runOpMode(byte);
 
@@ -15,6 +14,11 @@ String assembleMessage(Topic);
 byte storeTopic(byte, String, char, byte);
 void sendTelemetry(byte);
 #endif
+
+// define flipflop port to monitor
+// this will change every time the loop is run
+//
+#define FLIPFLOP_PORT 37
 
 void setGPIOs(void);
 void updateDisplayAndIndicators(void);
@@ -36,7 +40,6 @@ void setRTCfromInput(void);
 #define SENSORS_DEVELOPEMENT 15          // as it says
 #define RUN_PRESET_COURSE 30             // executes a series of preset commands
 #define FREE_RUN  35                     // runs in obstacle collision avoidance on
-#define MEASURE_AND_CALIBRATE_MOTORS 40  // used to test what ever needs testing
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
 
 char char_buffer[25] = {0};              // C-style char buffer to hold String data
@@ -69,18 +72,6 @@ int  PS2_config_result{254}; // controler never set = 254
 byte PS2_type{0};
 
 //*************** motors encoders (Hall) sensors definitions
-//setup timer interrupt for motor encoders
-DueTimer encoderTimer = Timer.getAvailable();
-
-volatile unsigned long S1_L_count {0};          // running count for Hall sensor S1, left motor
-volatile unsigned long S1_L_count_previous {0}; // previous count for Hall sensor S1, left motor
-volatile unsigned long deltaCount_L {0};        // number of counts for Hall sensor S1, left motor for measuring period
-
-volatile unsigned long S1_R_count {0};          // running count for Hall sensor S1, right motor
-volatile unsigned long S1_R_count_previous {0}; // previous count for Hall sensor S1, right motor
-volatile unsigned long deltaCount_R {0};        // number of counts for Hall sensor S1, right motor for measuring period
-
-volatile unsigned long encoderTimerLoopCount {0};     // number of passes trough timer
 
 const byte S1motorEncoder_L_PIN = 22;  // motor encoder S1 A pin
 const byte S2motorEncoder_L_PIN = 24;  // motor encoder S2 B pin 
@@ -89,7 +80,7 @@ const byte S2motorEncoder_R_PIN = 28;  // motor encoder S2 pin
 
 // motor direction
 const byte FORWARD {0};
-const byte REVERSE {1};
+const byte BACKWARD {1};
 
 //*************************************************************
 //definitions for Ps2 controler for teleoperation
@@ -108,21 +99,16 @@ PS2X ps2x; // create PS2 Controller Class object
  *  the vehicule navigates freely, begining driving forward from a start point while avoiding collisions.
 */
 
-//******************************************************
-// definitions for MEASURE_AND_CALIBRATE_MOTORS opMode
-//******************************************************
-#define ENCODER_MEASURE_INTERVAL 100000 // sampling interval = timer interval; set in microseconds (10e-6s)
-
 //*******************************************
 //************* motor control definitions
 //*******************************************
 
-// left motor on L298N channel A
+// left motor on L298N (channel A)
 #define ENA_L_PIN 4 // pwm pin
 #define IN1_PIN   29
 #define IN2_PIN   27
 
-// right motor on L298N channel B
+// right motor on L298N (channel B)
 //#define ENB_R 2 // pwm pin
 #define ENB_R 3 // pwm pin
 #define IN3   25
