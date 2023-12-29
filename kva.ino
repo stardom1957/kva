@@ -86,7 +86,7 @@ void run_preset_course(void) {
 }
 
 //************ OPMODE ************************
-//************ STANDBY ***********************
+//*********** STANDBY ***********************
 
 void standby(void) {
   // #TODO
@@ -107,11 +107,11 @@ void free_run(void) {
 
 void free_run(void) {
  // #TODO
-  int target_L = 150;  //in encoder counts
+  int target_L = EMERGENCY_SLOW;  //in encoder counts
   int target_R = EMERGENCY_SLOW;
      
-  motorLeftSet(EMERGENCY_SLOW, FORWARD);
-  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
+  motorLeftSet(target_L, FORWARD);
+  motorRightSet(target_R, FORWARD);
 
   // do PID
   // ***********************
@@ -122,24 +122,28 @@ void free_run(void) {
 
   // Read the S1 encoders positions
   int pos_actual_L;
-  //debug int pos_actual_R;
+  int pos_actual_R;
   noInterrupts(); // disable interrupts temporarily while reading
-   pos_actual_L = posi_L;
-   //debug pos_actual_R = posi_R;
+  pos_actual_L = posi_L;
+  pos_actual_R = posi_R;
   interrupts(); // turn interrupts back on
 
   // evaluate PID for each motor
-  int pwr, dir;
+  int pwrL, dirL, pwrR, dirR;
   // evaluate the control signal for left and right motor
-  pid_L.evalu(pos_actual_L, target_L, deltaT, pwr, dir);
-  //debug pid_R.evalu(pos_actual_R,target_R,deltaT,pwr,dir);
+  pid_L.evalu(pos_actual_L, target_L, deltaT, pwrL, dirL);
+  pid_R.evalu(pos_actual_R, target_R, deltaT, pwrR, dirR);
 
   // signal the motor
   //Serial.print("pwr: ");
-  Serial.println(pwr);
+  Serial.println(pwrL);
+  Serial.println(pwrR);
   //Serial.print(", dir: ");
-  Serial.println(dir);
-  motorLeftSet(pwr, dir);
+  Serial.println(dirL);
+  Serial.println(dirR);
+
+  motorLeftSet(pwrL, dirL);
+  motorRightSet(pwrR, dirR);
 }
 
 

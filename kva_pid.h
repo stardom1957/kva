@@ -102,7 +102,7 @@ const byte S2motorEncoder_R_PIN = 28;  // motor encoder S2 pin
 */
 
 // globals
-long prevTime{0}; // prevousTime
+long prevTime{0}; // previousTime
 volatile int posi_L{0}; //  left encoder position (count)
 volatile int posi_R{0}; // right encoder position (count)
 
