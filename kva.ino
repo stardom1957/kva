@@ -3,11 +3,11 @@
 
 // ************** Compile directives
 #define COMPILE_MAIN
+
+#ifdef COMPILE_MAIN
 #define RTC_COMPILE
 #define MOTOR_CONTROL_COMPILE
 #define SENSORS_COMPILE
-
-#ifdef COMPILE_MAIN
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
@@ -15,11 +15,10 @@
 #define PID_COMPILE // compile kva_pid.h
 
 // definition of debug levels
-// mainly replacing Serial.print and Serial.println by notting when not needed
+// mainly replacing Serial.print and Serial.println by nothing when not needed
 // that is DEBUG == 0
 
-#define DEBUG 0 // 1 is debug 0 is not
-
+#define DEBUG 0 // 1 means debugging is active 0 means it's not
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
 #define debug_2arg(x, y) Serial.print(x, y)
@@ -40,13 +39,93 @@
 #endif
 
 #include "kva.h"
-#include "motor_control.h"
 #include "sensors.h"
+#include "motor_control.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
-#ifdef PID_COMPILE
- #include "kva_pid.h"
-#endif
+#include "kva_pid.h"
+
+//************** OPMODE ***************************
+//*********** EMERGENCY_MODE **********************
+
+volatile unsigned long entry_time{0};
+bool do_emergency_reverse{false};
+unsigned long emergency_run_time;
+long turnRightOrLeft{false};
+
+void handle_emergency(byte calling_op_mode) {
+  entry_time = micros();
+  switch(calling_op_mode) {
+    case FREE_RUN:
+      if (contact_sensor_just_triggered) {
+        contact_sensor_just_triggered = false;
+        emergency_run_time = 0;
+        do_emergency_reverse = true;
+        // initialise random direction for turn
+        // we want to turn in one direction if even and in the opposite direction if odd
+        turnRightOrLeft = random(RANDOM_RANGE) % 2; // 0 if even (false), 1 if odd (true)
+      }
+      
+      // handle emergency reverse
+      // reverse is allways done the same way
+      
+      if ( do_emergency_reverse ) { 
+	      if (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME) {
+          motorLeftSet(EMERGENCY_SLOW, BACKWARD);
+          motorRightSet(EMERGENCY_SLOW, BACKWARD);
+	      }
+	      else {
+          digitalWrite(ENB_R, LOW); //this will stop both motors
+          digitalWrite(ENA_L_PIN, LOW);
+          do_emergency_reverse = false;
+	      }
+      }
+
+      // update emergency run time
+      emergency_run_time += (micros() - entry_time);
+      
+      // handle emergency turn after EMERGENCY_WAIT_TIME has passed
+      if ((EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME < emergency_run_time) &&
+       (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_TURN_RUN_TIME + EMERGENCY_WAIT_TIME) ) {
+        // turn direction is dependant of wich contact sensor is triggered
+        switch(contact_sensor_just_triggered_ID) {
+          case RIGHT_CONTACT_TRIGGERED:
+            // turn left
+            vehiculeRotateLeft(EMERGENCY_SLOW);
+            break;
+
+          case CENTER_CONTACT_TRIGGERED:
+            // turn randomly left or right
+            if (turnRightOrLeft) { vehiculeRotateLeft(EMERGENCY_SLOW); }
+            else { vehiculeRotateRight(EMERGENCY_SLOW); }
+            break;
+
+          case LEFT_CONTACT_TRIGGERED:
+            // turn right
+            vehiculeRotateRight(EMERGENCY_SLOW);
+            break;
+
+        }
+      }
+      else { // going out of emergency mode
+        digitalWrite(ENB_R, LOW); //this will stop both motors
+        digitalWrite(ENA_L_PIN, LOW);
+        // TODO reenable all contact sensors interrupts ???
+        // restore old opmode
+        currentOpMode = calling_op_mode;
+        // reset contact_sensor_triggered_ID
+        contact_sensor_just_triggered_ID = 0;
+       } // else emergency turn
+      
+      // update emergency run time
+      emergency_run_time += (micros() - entry_time);
+    
+    break; // FREE_RUN
+
+    case TELEOP:
+    break;
+  }
+}
 
 //************** OPMODE ***************************
 //*********** RUN_PRESET_COURSE *******************
@@ -90,25 +169,46 @@ void run_preset_course(void) {
 
 void standby(void) {
   // #TODO
-  motorAllStop();
+  if (!continue_run) {
+     motorAllStop();  
+  }
+  continue_run = true;
 }
 
 //************ OPMODE ************************
 //************ FREE_RUN ***********************
-/*
-void free_run(void) {
- // test
-  int motor_offset{20};
-  motorLeftSet(200-motor_offset, FORWARD);
-  motorRightSet(200, FORWARD);  
-  //debug motorRightSet(EMERGENCY_SLOW, FORWARD);
-}
-*/
+// for motor pid
+#define FREE_RUN_TARGET_LEFT 240  //initial sPeed in encoder counts
+#define FREE_RUN_TARGET_RIGHT 240  //initial sPeed in encoder counts
+
+// actual speed values during pid control
+int l_speed{0};
+int r_speed{0};
 
 void free_run(void) {
+  if (!contact_sensor_just_triggered) {
+    if (!continue_run) {
+      // setup
+      l_speed = FREE_RUN_TARGET_LEFT;
+      r_speed = FREE_RUN_TARGET_RIGHT;
+    }
+
+    // we would do pid here
+    //l_speed = target_L;
+    //r_speed = target_R;
+
+    motorLeftSet(l_speed, FORWARD);
+    motorRightSet(r_speed, FORWARD);  
+    continue_run = true;
+
+  }
+}
+
+/*
+void free_run(void) {
  // #TODO
-  int target_L = EMERGENCY_SLOW;  //in encoder counts
-  int target_R = EMERGENCY_SLOW;
+  # int target_L = EMERGENCY_SLOW;  //in encoder counts
+  # int target_R = EMERGENCY_SLOW;
      
   motorLeftSet(target_L, FORWARD);
   motorRightSet(target_R, FORWARD);
@@ -145,11 +245,15 @@ void free_run(void) {
   motorLeftSet(pwrL, dirL);
   motorRightSet(pwrR, dirR);
 }
-
+*/
 
 // runs the selected opMode
 void runOpMode(byte om) {
   switch (om) {
+    case EMERGENCY_MODE:
+     handle_emergency(oldOpMode);
+     break;
+     
     case STANDBY:
      currentOpModeName = "STANDBY";
      motorAllStop();
@@ -213,6 +317,9 @@ void setGPIOs(void) {
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
   digitalWrite(LED_GREEN_SYSTEM_READY, LOW);  // system not ready
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
+
+  // contact sensors
+  pinMode(RIGHT_CONTACT_SENSOR_PIN, INPUT);
 }
 
 // manages change of opMode
@@ -221,6 +328,8 @@ void manageOpModeChange(void) {
    debug("in manageOpModeChange");
    //dbSerialPrintln("  ");
    currentOpMode = requestedOpMode;
+   continue_run = false; // ensures that mode setup code is run during first function entry of current opmode
+
    debugln("debug requestedOpMode, value is: ");
    debugln(requestedOpMode);
    
@@ -335,6 +444,8 @@ void setup()
   Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
 
+  setGPIOs();
+
   // set yellow alert off
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   digitalWrite(LED_GREEN_SYSTEM_READY, LOW); // now system is not ready
@@ -345,7 +456,6 @@ void setup()
     digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
   }
 
-  setGPIOs();
   motorAllStop();
 
   // prepare PID controlers for L & R motors
@@ -385,19 +495,29 @@ void setup()
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
   digitalWrite(FLIPFLOP_PORT, LOW);
   debugln("Setup finished\n");
+
+  #ifdef SENSORS_COMPILE
+    // attach the isr to proper interrupt for contact sensors
+       attachInterrupt(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN), isr_right_contact_sensor, RISING);
+       attachInterrupt(digitalPinToInterrupt(CENTER_CONTACT_SENSOR_PIN), isr_center_contact_sensor, RISING);
+       attachInterrupt(digitalPinToInterrupt(LEFT_CONTACT_SENSOR_PIN), isr_left_contact_sensor, RISING);
+  #endif  
+
+    // set random function to decide certain events
+       randomSeed(analogRead(ANALOG_PORT_RANDOM_SEED));
 }
 
 void loop()
 {
  //
  // reverse FLIPFLOP_PORT
- // to be monitored externally
+ // to be monitored externally i.e. an oscilloscope
  //
  digitalWrite(FLIPFLOP_PORT, !digitalRead(FLIPFLOP_PORT));
  updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();
  runOpMode(currentOpMode);
- delay(10); //#TODO for developement. this delay will have to be ajusted later
+ delay(10); //#TODO this delay will have to be ajusted later
 }
 #endif //endif for COMPILE_MAIN

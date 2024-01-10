@@ -232,17 +232,30 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
     31.3.2 one that only calculate the difference in count during one cycle <----
   31.4 create functions for ramping speed up and down
   31.5 test pid evalu function w/o motor control
+vvvvvvvvv branch pid_devel merged into master vvvvvvvv
+
+vvvvvvvvv on branch master vvvvvvvv
 
 32. In general:
   32.1 documentation, photos for motor integration (L298N) and insertion in binder
   32.2 documentation, photos for IR and LIDAR sensors test gig and insertion in binder
 
-33. Implemeting a digital "flip flop" for  time off main loop:
-  33.1 variable flipflop
+33. Digital "flip flop" for  time off main loop: DONE
+  33.1 variable flipflop done
 
- Working on
+2024-01-07
+34. 7.5 collision contact sensor test:
+  34.1 right contact sensor grey wire (G on sensor circuit board) connected to D34
+   (Note: the sensor circuit board has an 4.7K resistor)  
+  34.2 right contact sensor red wire (U on sensor circuit board_) connected to 3.3VCC power bus
+  34.3 the ISR is coded in sensors.h tab
+  34.4 write function to take care of collision according to wich bumper has triggered (in motor_control.h tab) <----
+(to be used in )    
+free_run and elsewhere 
+
+Working on
  ----------
-33 <---
+34 <---
 28
 23.3.4.5 I2C level shifter
  */

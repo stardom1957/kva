@@ -2,6 +2,13 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
+// run time definitions for emergency manoeuvers in microseconds
+// 1 000 000 microseconds by second
+#define EMERGENCY_REVERSE_RUN_TIME 1000000
+#define EMERGENCY_TURN_RUN_TIME 1000000
+#define EMERGENCY_WAIT_TIME 250000 // wait time between emergency manoeuvres
+
+// function prototypes
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
 void vehiculeRotateLeft(int);
@@ -92,6 +99,10 @@ void motorAllStop(void)
 */
 
 //***************** PS2 controler setting function
+// status for TELEOP mode
+int  PS2_config_result{254}; // controler never set = 254
+byte PS2_type{0};
+
 void set_ps2x(void) {
  digitalWrite(PS2X_CS, LOW); // select controler for action
  //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for PS2_config_result
@@ -136,7 +147,7 @@ void motor_TELEOP_node_v1(void) {
   const int atRestZone {3};  // buffer zone to indicate stick is at rest in the middle
   boolean emergency_run{false}; // indicates we are moving using emergency buttons
   
-  if(PS2_config_result == 254) { //try to setup controler up to 10 times
+  if(PS2_config_result == 254 || !continue_run) { //try to setup controler up to 10 times
    // debug debugln("Setting controler...");
    byte sc;
    for (sc=0; sc<10; sc++) {
@@ -159,6 +170,7 @@ void motor_TELEOP_node_v1(void) {
   if(ps2x.Button(PSB_L1)) {
 
     //*************EMERGENCY ROTATION AND FORWARD/BACKWARD ************
+    // using controller triangle, cross, square and circle
     //slow forward
     if(ps2x.ButtonPressed(PSB_TRIANGLE)){
       debugln("emergency forward");
@@ -217,8 +229,9 @@ void motor_TELEOP_node_v1(void) {
      //motor speeds is determined from stick values ps2RY
      // we need to map the reading from 0 to 255
 
+     // map(value, fromLow, fromHigh, toLow, toHigh)
      motorSpeed_L = map(ps2RY, (127 + atRestZone), 255, 0, 255);
-     motorSpeed_R = map(ps2RY, (127 + atRestZone), 255, 0, 255);
+     motorSpeed_R = motorSpeed_L;
    }
   
    else if (ps2RY <= (127 - atRestZone)) {
@@ -229,9 +242,10 @@ void motor_TELEOP_node_v1(void) {
     //motor speeds is determined from stick values ps2RY
     //we need to map reading from 0 to 255
 
+    // map(value, fromLow, fromHigh, toLow, toHigh)
     motorSpeed_L = map(ps2RY, (127 - atRestZone), 0, 0, 255);
-    motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
-
+    //motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
+    motorSpeed_R = motorSpeed_L;
    }
    else {
     // the stick is in the middle rest zone, so this is Stopped
@@ -248,12 +262,15 @@ void motor_TELEOP_node_v1(void) {
    LEFT  is ps2RX <= (128 - atRestZone)
    RIGHT is ps2RX >= (128 + atRestZone)
    */
-
+    //Raw X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
   if (ps2RX <= (128 - atRestZone)) {
     // We move to the left
     // Map the number to a value of 255 maximum
+    // map(value, fromLow, fromHigh, toLow, toHigh)
 
-    ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
+    //ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
+    ps2RX = map(ps2RX, 0, 128, 128, 0);
+    //ps2RX = map(ps2RX, 0, 128, 255, 0);
     motorSpeed_L = motorSpeed_L - ps2RX;
     motorSpeed_R = motorSpeed_R + ps2RX;
 
@@ -264,13 +281,14 @@ void motor_TELEOP_node_v1(void) {
     else if (ps2RX >= (128 + atRestZone)) {
     // we move to the right
     // Map the number to a value of 255 maximum
-
-      ps2RX = map(ps2RX, (128 + atRestZone), 255, 0, 255);
+      // map(value, fromLow, fromHigh, toLow, toHigh)
+      //ps2RX = map(ps2RX, (128 + atRestZone), 255, 0, 255);
+      ps2RX = map(ps2RX, 128, 255, 0, 128);
+      //ps2RX = map(ps2RX, 128, 255, 0, 255);
       motorSpeed_L = motorSpeed_L + ps2RX;
       motorSpeed_R = motorSpeed_R - ps2RX;
 
     // Don't exceed range of 0-255 for motor speeds
-
       if (motorSpeed_L > 255) motorSpeed_L = 255;
       if (motorSpeed_R < 0) motorSpeed_R = 0;      
     }
@@ -289,6 +307,7 @@ void motor_TELEOP_node_v1(void) {
         motorAllStop();
   }
   //debug delay(50);
+  continue_run = true;
 } // fin motor_TELEOP_node_v1
 
 

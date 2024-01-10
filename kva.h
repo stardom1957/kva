@@ -2,18 +2,27 @@
 #define _kva_h 
 
 //functions prototypes
-void set_ps2x();
-void motor_TELEOP_node_v1();
+void set_ps2x(void);
+void motor_TELEOP_node_v1(void);
 void run_preset_course(void);
 void free_run(void);
 void standby(void);
+void handle_emergency(byte);
 void runOpMode(byte);
+
+#ifdef SENSORS_COMPILE
+// functions prototypes
+void sensorDeveloppement(void);
+void isr_right_contact_sensor(void);
+#endif
 
 #ifdef TELEMETRY
 String assembleMessage(Topic);
 byte storeTopic(byte, String, char, byte);
 void sendTelemetry(byte);
 #endif
+#define FREE_RUN_TARGET_LEFT 100  //initial sPeed in encoder counts
+#define FREE_RUN_TARGET_RIGHT 100  //initial sPeed in encoder counts
 
 // define flipflop port to monitor
 // this will change every time the loop is run
@@ -41,6 +50,8 @@ void setRTCfromInput(void);
 #define RUN_PRESET_COURSE 30             // executes a series of preset commands
 #define FREE_RUN  35                     // runs in obstacle collision avoidance on
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
+#define EMERGENCY_MODE 45                // When a contact sensor has triggered or distance is short
+bool continue_run{false};                // Bypass some code when continuouslly running in a mode function
 
 char char_buffer[25] = {0};              // C-style char buffer to hold String data
 
@@ -54,7 +65,8 @@ char char_buffer[25] = {0};              // C-style char buffer to hold String d
 #define LED_GREEN_SYSTEM_READY 52
 
 // *** STATUS FOR OPMODE CONTROL
-byte currentOpMode;                   // operation mode
+volatile byte currentOpMode;          // operation mode
+volatile byte oldOpMode;              // stores current opmode when emergency manoeuvers are initiated
 String currentOpModeName;             // text value of current opMode name 
 boolean currentOpModeOK{false};       // indicates if current opmode is OK
 byte requestedOpMode;                 // user requested opmode
@@ -62,14 +74,10 @@ boolean opModeChangeRequested{false}; // indicates opmode change requested from 
 boolean opModeChangeAutorized{false}; // indicates that a change of opMode is autorized
 
 // status for motor control
-int motorSpeed_L = 0; // Motor Speed Values - Start at zero
-int motorSpeed_R = 0;
+int motorSpeed_L{0}; // Motor Speed Values - Start at zero
+int motorSpeed_R ={0};
 #define MOTOR_LOWER_PWM_LIMIT 25 // to avoid buzzing
 #define EMERGENCY_SLOW 150 //emergency speed to get out of trouble
-
-// status for TELEOP mode
-int  PS2_config_result{254}; // controler never set = 254
-byte PS2_type{0};
 
 //*************** motors encoders (Hall) sensors definitions
 
@@ -113,5 +121,9 @@ PS2X ps2x; // create PS2 Controller Class object
 #define ENB_R 3 // pwm pin
 #define IN3   25
 #define IN4   23
+
+// unconnected analog port wich "noise" is used as seed for random seed
+#define ANALOG_PORT_RANDOM_SEED 5
+#define RANDOM_RANGE 1000
 
 #endif
