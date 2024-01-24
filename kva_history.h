@@ -234,6 +234,7 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
   31.5 test pid evalu function w/o motor control
 vvvvvvvvv branch pid_devel merged into master vvvvvvvv
 
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch master vvvvvvvv
 
 32. In general:
@@ -244,16 +245,21 @@ vvvvvvvvv on branch master vvvvvvvv
   33.1 variable flipflop done
 
 2024-01-07
-34. 7.5 collision contact sensor test:
-  34.1 right contact sensor grey wire (G on sensor circuit board) connected to D34
-   (Note: the sensor circuit board has an 4.7K resistor)  
-  34.2 right contact sensor red wire (U on sensor circuit board_) connected to 3.3VCC power bus
-  34.3 the ISR is coded in sensors.h tab
-  34.4 write function to take care of collision according to wich bumper has triggered (in motor_control.h tab) <----
-(to be used in )    
-free_run and elsewhere 
+34. collision contact sensors (7.5): some code done in kva and see below. TODO
+vvvvvvvvv branch master commit vvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-34. Divers :
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch hmi_page3 vvvvvvvv
+
+2024-01-24
+35. Adding page 3 on HMI to serve to list the log:
+   35.1 
+
+
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+XX. Divers :
   34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
   34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
   34.3 updateDisplayAndIndicators(void) : case for page 2 ????
