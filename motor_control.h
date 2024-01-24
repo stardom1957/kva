@@ -2,12 +2,6 @@
 #define _motor_control_h
 #ifdef MOTOR_CONTROL_COMPILE
 
-// run time definitions for emergency manoeuvers in microseconds
-// 1 000 000 microseconds by second
-#define EMERGENCY_REVERSE_RUN_TIME 1000000
-#define EMERGENCY_TURN_RUN_TIME 1000000
-#define EMERGENCY_WAIT_TIME 250000 // wait time between emergency manoeuvres
-
 // function prototypes
 void motorRightSet(int, byte);
 void vehiculeRotateRight(int);
@@ -146,8 +140,10 @@ void motor_TELEOP_node_v1(void) {
   //const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
   const int atRestZone {3};  // buffer zone to indicate stick is at rest in the middle
   boolean emergency_run{false}; // indicates we are moving using emergency buttons
-  
-  if(PS2_config_result == 254 || !continue_run) { //try to setup controler up to 10 times
+
+  currentOpModeName = "TELEOP";
+
+  if(PS2_config_result == 254 || run_setup) { //try to setup controler up to 10 times
    // debug debugln("Setting controler...");
    byte sc;
    for (sc=0; sc<10; sc++) {
@@ -307,7 +303,8 @@ void motor_TELEOP_node_v1(void) {
         motorAllStop();
   }
   //debug delay(50);
-  continue_run = true;
+  //debug
+  run_setup = false;
 } // fin motor_TELEOP_node_v1
 
 

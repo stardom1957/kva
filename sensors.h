@@ -12,7 +12,8 @@
 #define LEFT_CONTACT_TRIGGERED 1
 
 volatile bool contact_sensor_just_triggered{false};
-volatile byte contact_sensor_just_triggered_ID{0};
+volatile byte contact_sensors_ID{0};
+volatile bool do_emergency{false}; // indicates to go in emergency "mode" one of the contact sensors triggered
 
 //this function will serve as a base for sensor devel when needed
 void sensorDeveloppement(void) {
@@ -38,37 +39,26 @@ void isr_right_contact_sensor(void);
 void isr_left_contact_sensor(void) {
     digitalWrite(ENB_R, LOW); //this will stop both motors
     digitalWrite(ENA_L_PIN, LOW);
-    
     contact_sensor_just_triggered = true;
-    contact_sensor_just_triggered_ID |= LEFT_CONTACT_TRIGGERED; // set appr bit
-    
-    oldOpMode = currentOpMode;
-    currentOpMode = EMERGENCY_MODE;
-    //TODO disable this interrupt??
+    do_emergency = true;
+    contact_sensors_ID |= LEFT_CONTACT_TRIGGERED; // set appr bit
 }
 
 void isr_center_contact_sensor(void) {
     digitalWrite(ENB_R, LOW); //this will stop both motors
     digitalWrite(ENA_L_PIN, LOW);
-    
     contact_sensor_just_triggered = true;
-    contact_sensor_just_triggered_ID |= CENTER_CONTACT_TRIGGERED; // set appr bit
-    
-    oldOpMode = currentOpMode;
-    currentOpMode = EMERGENCY_MODE;
-    //TODO disable this interrupt??
+    do_emergency = true;
+    contact_sensors_ID |= CENTER_CONTACT_TRIGGERED; // set appr bit
 }
 
 void isr_right_contact_sensor(void) {
+    //detachInterrupt(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN));
     digitalWrite(ENB_R, LOW); //this will stop both motors
     digitalWrite(ENA_L_PIN, LOW);
-    
     contact_sensor_just_triggered = true;
-    contact_sensor_just_triggered_ID |= RIGHT_CONTACT_TRIGGERED; // set appr bit
-    
-    oldOpMode = currentOpMode;
-    currentOpMode = EMERGENCY_MODE;
-    //TODO disable this interrupt??
+    do_emergency = true;
+    contact_sensors_ID |= RIGHT_CONTACT_TRIGGERED; // set appr bit
 }
 
 #endif //SENSORS_COMPILE

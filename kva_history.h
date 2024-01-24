@@ -253,10 +253,82 @@ vvvvvvvvv on branch master vvvvvvvv
 (to be used in )    
 free_run and elsewhere 
 
+34. Divers :
+  34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
+  34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
+  34.3 updateDisplayAndIndicators(void) : case for page 2 ????
+  34.4 
+
+
 Working on
  ----------
 34 <---
 28
 23.3.4.5 I2C level shifter
  */
+
+      // ****************      
+      // emergency turn *
+      // ****************
+/*
+      if ( do_emergency_turn && !do_wait ) {
+        if ( (EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME < emergency_run_time) &&
+             (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME + EMERGENCY_TURN_RUN_TIME) ) {
+
+          // turn direction is dependant of wich contact sensor is triggered
+          debugln("in handle emergency turn");
+          switch(contact_sensors_ID) {
+            case RIGHT_CONTACT_TRIGGERED:
+              // turn left
+              vehiculeRotateLeft(EMERGENCY_SLOW);
+              break;
+
+            case CENTER_CONTACT_TRIGGERED:
+              // turn as set in entry setup section above
+              if (turnRightOrLeft) { vehiculeRotateLeft(EMERGENCY_SLOW); }
+                 else { vehiculeRotateRight(EMERGENCY_SLOW); }
+              break;
+
+            case LEFT_CONTACT_TRIGGERED:
+              // turn right
+              vehiculeRotateRight(EMERGENCY_SLOW);
+              break;
+          }
+        }
+          // the turn is finished
+          else {
+            do_emergency_turn = false;
+            // stop both motors
+            digitalWrite(ENB_R, LOW);
+            digitalWrite(ENA_L_PIN, LOW);
+            do_wait = true; // flag for last wait time before exit of emergency
+          }
+      }  // do_emergency_turn && !do_wait
+
+      // ************************
+      // Going out of emergency *
+      // ************************
+
+      // last wait time before going out of emergency
+      
+      if ( do_wait &&
+           !do_emergency_reverse &&
+           !do_emergency_turn &&
+           (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_TURN_RUN_TIME + 2 * EMERGENCY_WAIT_TIME) ) { // where finished emergency
+        ; // do nothing during wait time
+      }
+
+        else {
+          // setup to for calling_mode re-entry
+          do_emergency = false;  // used in run_op_mode
+          run_setup = true; // to ensure that setup code is run upon reentry in calling op mode
+
+          // reset contact_sensor_triggered_ID
+          contact_sensors_ID = 0;
+          // re-attach interrupts
+          //attachInterrupt(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN), isr_right_contact_sensor, RISING);
+        }
+
+
+
 #endif

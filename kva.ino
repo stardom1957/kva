@@ -11,14 +11,14 @@
 #define SERIAL_DEBUG_PORT     0 // serial port for debuging
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
-#define TELEMETRY               // compile telemetry code
+//#define TELEMETRY               // compile telemetry code
 #define PID_COMPILE // compile kva_pid.h
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by nothing when not needed
 // that is DEBUG == 0
 
-#define DEBUG 0 // 1 means debugging is active 0 means it's not
+#define DEBUG 1 // 1 means debugging is active 0 means it's not
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
 #define debug_2arg(x, y) Serial.print(x, y)
@@ -48,83 +48,95 @@
 //************** OPMODE ***************************
 //*********** EMERGENCY_MODE **********************
 
-volatile unsigned long entry_time{0};
-bool do_emergency_reverse{false};
-unsigned long emergency_run_time;
-long turnRightOrLeft{false};
+// run time definitions for emergency manoeuvers in microseconds
+// 1 000 000 microseconds by second
+#define EMERGENCY_REVERSE_RUN_TIME 2000000
+#define EMERGENCY_TURN_RUN_TIME 2500000
+#define EMERGENCY_WAIT_TIME 500000 // wait time between emergency reverse and turn
 
-void handle_emergency(byte calling_op_mode) {
-  entry_time = micros();
-  switch(calling_op_mode) {
+unsigned long emergency_function_last_exit_time{0};
+bool do_emergency_reverse{false};
+bool do_wait{false};
+bool do_emergency_turn{true};
+unsigned long emergency_run_time;
+int turnRightOrLeft{0};
+
+void handle_emergency(byte calling_mode) {
+  // update emergency run time to account for the time past OUTSIDE this function
+  // if it's the first entry (contact_sensor_just_triggered is set), the value is irrelevant and will be set to 0
+  // in each case upon first entry
+  
+  emergency_run_time += (micros() - emergency_function_last_exit_time);
+  
+  switch(calling_mode) {
     case FREE_RUN:
+      /* About wait times:
+         The majority of time is passed OUTSIDE of this function!
+         
+         Therefore, do_wait is a flag used to freeze an ongoing operation by preventing the start
+         of any other operation before EMERGENCY_WAIT_TIME has elapsed for this particular operation.
+      */
+
+      
+      /* *******************************************
+         Setup for first entry; that is            *
+         right after contact_sensor_just_triggered *
+         is set by one of the sensor contact ISR   *
+        ********************************************
+      */
+
       if (contact_sensor_just_triggered) {
+        debugln("in contact_sensor_just_triggered");
         contact_sensor_just_triggered = false;
         emergency_run_time = 0;
-        do_emergency_reverse = true;
-        // initialise random direction for turn
-        // we want to turn in one direction if even and in the opposite direction if odd
-        turnRightOrLeft = random(RANDOM_RANGE) % 2; // 0 if even (false), 1 if odd (true)
+        do_emergency_reverse = true; // start reverse operation
+        do_wait = false; // wait time in effect
+        do_emergency_turn = false; // not yet doing turn
+
+        // initialise random direction for turn when center contact sensor
+        // has triggered.
+        // We want to turn left or right randomly 50% of the time in on direction.
+        turnRightOrLeft = random(0, 1);
+        debug(" turnRightOrLeft: ");
+        debugln(turnRightOrLeft);
+        debugln();
       }
       
-      // handle emergency reverse
-      // reverse is allways done the same way
+      // *******************
+      // emergency reverse *
+      // *******************
       
-      if ( do_emergency_reverse ) { 
-	      if (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME) {
+      if ( do_emergency_reverse) { 
+	      if ( emergency_run_time < EMERGENCY_REVERSE_RUN_TIME ) {
+          debugln("in do_emergency_reverse, motors should run in reverse");
           motorLeftSet(EMERGENCY_SLOW, BACKWARD);
           motorRightSet(EMERGENCY_SLOW, BACKWARD);
 	      }
-	      else {
-          digitalWrite(ENB_R, LOW); //this will stop both motors
-          digitalWrite(ENA_L_PIN, LOW);
-          do_emergency_reverse = false;
-	      }
-      }
+          else {
+            // stop both motors
+            digitalWrite(ENB_R, LOW);
+            digitalWrite(ENA_L_PIN, LOW);
+          }
 
-      // update emergency run time
-      emergency_run_time += (micros() - entry_time);
-      
-      // handle emergency turn after EMERGENCY_WAIT_TIME has passed
-      if ((EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME < emergency_run_time) &&
-       (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_TURN_RUN_TIME + EMERGENCY_WAIT_TIME) ) {
-        // turn direction is dependant of wich contact sensor is triggered
-        switch(contact_sensor_just_triggered_ID) {
-          case RIGHT_CONTACT_TRIGGERED:
-            // turn left
-            vehiculeRotateLeft(EMERGENCY_SLOW);
-            break;
-
-          case CENTER_CONTACT_TRIGGERED:
-            // turn randomly left or right
-            if (turnRightOrLeft) { vehiculeRotateLeft(EMERGENCY_SLOW); }
-            else { vehiculeRotateRight(EMERGENCY_SLOW); }
-            break;
-
-          case LEFT_CONTACT_TRIGGERED:
-            // turn right
-            vehiculeRotateRight(EMERGENCY_SLOW);
-            break;
-
+        // waiting EMERGENCY_WAIT_TIME
+        if ( emergency_run_time > (EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME) ) {
+            do_emergency_reverse = false;
+            do_emergency = false;  // used in run_op_mode
+            run_setup = true; // to ensure that setup code is run upon reentry in calling op mode
         }
       }
-      else { // going out of emergency mode
-        digitalWrite(ENB_R, LOW); //this will stop both motors
-        digitalWrite(ENA_L_PIN, LOW);
-        // TODO reenable all contact sensors interrupts ???
-        // restore old opmode
-        currentOpMode = calling_op_mode;
-        // reset contact_sensor_triggered_ID
-        contact_sensor_just_triggered_ID = 0;
-       } // else emergency turn
-      
-      // update emergency run time
-      emergency_run_time += (micros() - entry_time);
-    
+
     break; // FREE_RUN
 
     case TELEOP:
+    break; //TELEOP
+
+    default:
     break;
-  }
+  } // end switch... case
+
+  // update exit time
+  emergency_function_last_exit_time = micros();
 }
 
 //************** OPMODE ***************************
@@ -169,10 +181,10 @@ void run_preset_course(void) {
 
 void standby(void) {
   // #TODO
-  if (!continue_run) {
-     motorAllStop();  
+  if (run_setup) {
+     motorAllStop();
+     run_setup = false;
   }
-  continue_run = true;
 }
 
 //************ OPMODE ************************
@@ -186,11 +198,12 @@ int l_speed{0};
 int r_speed{0};
 
 void free_run(void) {
-  if (!contact_sensor_just_triggered) {
-    if (!continue_run) {
+    if (run_setup) {
       // setup
+      currentOpModeName = "FREE RUN";
       l_speed = FREE_RUN_TARGET_LEFT;
       r_speed = FREE_RUN_TARGET_RIGHT;
+      run_setup = false;
     }
 
     // we would do pid here
@@ -199,9 +212,6 @@ void free_run(void) {
 
     motorLeftSet(l_speed, FORWARD);
     motorRightSet(r_speed, FORWARD);  
-    continue_run = true;
-
-  }
 }
 
 /*
@@ -250,10 +260,6 @@ void free_run(void) {
 // runs the selected opMode
 void runOpMode(byte om) {
   switch (om) {
-    case EMERGENCY_MODE:
-     handle_emergency(oldOpMode);
-     break;
-     
     case STANDBY:
      currentOpModeName = "STANDBY";
      motorAllStop();
@@ -270,14 +276,17 @@ void runOpMode(byte om) {
      run_preset_course();
      break;
 
-    case TELEOP: // teleoperation by remote
-     currentOpModeName = "TELEOP";
+    case TELEOP: // teleoperation by gamepad type controller
      motor_TELEOP_node_v1();
      break;
 
     case FREE_RUN:
-     currentOpModeName = "FREE RUN";
-     free_run();
+     if (do_emergency) {
+      handle_emergency(FREE_RUN);
+     }
+       else {
+         free_run();
+       }
      break;
     
     default:
@@ -315,22 +324,24 @@ void setGPIOs(void) {
   pinMode(LED_YELLOW_ALERT_CONDITION, OUTPUT);
   pinMode(LED_GREEN_SYSTEM_READY, OUTPUT);
   pinMode(PS2X_CS, OUTPUT); //PS2 controler chip select pin
-  digitalWrite(LED_GREEN_SYSTEM_READY, LOW);  // system not ready
+
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // yellow LED will indicate start of setup
 
   // contact sensors
   pinMode(RIGHT_CONTACT_SENSOR_PIN, INPUT);
+  pinMode(LEFT_CONTACT_SENSOR_PIN, INPUT);
+  pinMode(CENTER_CONTACT_SENSOR_PIN, INPUT);
 }
 
 // manages change of opMode
 void manageOpModeChange(void) {
   if (opModeChangeRequested && opModeChangeAutorized) {
-   debug("in manageOpModeChange");
+   debugln("in manageOpModeChange");
    //dbSerialPrintln("  ");
    currentOpMode = requestedOpMode;
-   continue_run = false; // ensures that mode setup code is run during first function entry of current opmode
+   run_setup = true; // ensures that mode setup code is run during first function entry of current opmode
 
-   debugln("debug requestedOpMode, value is: ");
+   debug("  debug requestedOpMode, value is: ");
    debugln(requestedOpMode);
    
    opModeChangeRequested = false;
@@ -489,9 +500,6 @@ void setup()
   bminus.attachPop(bminusPopCallback, &bminus);
   bsetRTC.attachPop(bsetRTCPopCallback, &bsetRTC);
 
-  /* this is the default opmode at start of vehicule */
-  currentOpMode = STANDBY;
-
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
   digitalWrite(FLIPFLOP_PORT, LOW);
   debugln("Setup finished\n");
@@ -505,6 +513,9 @@ void setup()
 
     // set random function to decide certain events
        randomSeed(analogRead(ANALOG_PORT_RANDOM_SEED));
+
+  /* this is the default opmode at start of vehicule */
+  currentOpMode = STANDBY;
 }
 
 void loop()

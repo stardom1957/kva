@@ -51,7 +51,14 @@ void setRTCfromInput(void);
 #define FREE_RUN  35                     // runs in obstacle collision avoidance on
 #define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
 #define EMERGENCY_MODE 45                // When a contact sensor has triggered or distance is short
-bool continue_run{false};                // Bypass some code when continuouslly running in a mode function
+bool run_setup{true};                    // Used to bypass code run when first entry in a function
+
+// *** STATUS FOR OPMODE CONTROL
+byte currentOpMode;          // operation mode
+String currentOpModeName;             // text value of current opMode name 
+byte requestedOpMode;                 // user requested opmode
+boolean opModeChangeRequested{false}; // indicates opmode change requested from HMI
+boolean opModeChangeAutorized{false}; // indicates that a change of opMode is autorized
 
 char char_buffer[25] = {0};              // C-style char buffer to hold String data
 
@@ -63,15 +70,6 @@ char char_buffer[25] = {0};              // C-style char buffer to hold String d
 
 #define LED_YELLOW_ALERT_CONDITION 53
 #define LED_GREEN_SYSTEM_READY 52
-
-// *** STATUS FOR OPMODE CONTROL
-volatile byte currentOpMode;          // operation mode
-volatile byte oldOpMode;              // stores current opmode when emergency manoeuvers are initiated
-String currentOpModeName;             // text value of current opMode name 
-boolean currentOpModeOK{false};       // indicates if current opmode is OK
-byte requestedOpMode;                 // user requested opmode
-boolean opModeChangeRequested{false}; // indicates opmode change requested from HMI
-boolean opModeChangeAutorized{false}; // indicates that a change of opMode is autorized
 
 // status for motor control
 int motorSpeed_L{0}; // Motor Speed Values - Start at zero
@@ -124,6 +122,5 @@ PS2X ps2x; // create PS2 Controller Class object
 
 // unconnected analog port wich "noise" is used as seed for random seed
 #define ANALOG_PORT_RANDOM_SEED 5
-#define RANDOM_RANGE 1000
 
 #endif
