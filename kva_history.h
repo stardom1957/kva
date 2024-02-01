@@ -232,7 +232,7 @@ vvvvvvvvv on branch pid_devel vvvvvvvv
     31.3.2 one that only calculate the difference in count during one cycle <----
   31.4 create functions for ramping speed up and down
   31.5 test pid evalu function w/o motor control
-vvvvvvvvv branch pid_devel merged into master vvvvvvvv
+vvvvvvvvv branch pid_devel merged into master and deleted vvvvvvvv
 
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch master vvvvvvvv
@@ -246,6 +246,10 @@ vvvvvvvvv on branch master vvvvvvvv
 
 2024-01-07
 34. collision contact sensors (7.5): some code done in kva and see below. TODO
+  34.1 In runopmode, intercept do_emergency before case statement
+  34.2 bool do_emergency --> emergency_state
+  34.3 develop handle_emergency in FREE_RUN mode
+
 vvvvvvvvv branch master commit vvvvvvvv
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
@@ -254,16 +258,21 @@ vvvvvvvvv on branch hmi_page3 vvvvvvvv
 
 2024-01-24
 35. Adding page 3 on HMI to serve to list the log:
-   35.1 
+   35.1 Add page 3 with one text field (tlog) DONE
+   35.2 add two scroll buttons
+   35.2 Add nav buttons on page 0 to 2 to goto to page 3 DONE
+
+2024-02-01
+vvvvvvvvv branch hmi_page3 merged into master and deleted vvvvvvvv
+vvvvvvvvv return to main
 
 
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 XX. Divers :
   34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
   34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
   34.3 updateDisplayAndIndicators(void) : case for page 2 ????
-  34.4 
+  34.4 TODO only in PID a new develpement branch Concerning pid, when PID_COMPILE is not defined, kva_pid.h should no be compiled
 
 
 Working on
