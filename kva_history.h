@@ -281,7 +281,7 @@ vvvvvvvvv on branch PID_control_compile vvvvvvvv
 
 37. PID When PID_COMPILE is not defined, kva_pid.h should no be compiled DONE
    37.1 test dedined or not OK DONE
-vvvvvvvvv branch PID_control_compile merge into master vvvvvvvv
+vvvvvvvvv branch PID_control_compile merge into master and deleted vvvvvvvv
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
