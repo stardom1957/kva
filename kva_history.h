@@ -259,8 +259,11 @@ vvvvvvvvv on branch hmi_page3 vvvvvvvv
 2024-01-24
 35. Adding page 3 on HMI to serve to list the log:
    35.1 Add page 3 with one text field (tlog) DONE
-   35.2 add two scroll buttons
-   35.2 Add nav buttons on page 0 to 2 to goto to page 3 DONE
+   35.2 add two scroll buttons TODO
+   35.3 Add nav buttons on page 0 to 2 to goto to page 3 DONE
+   35.4 add appropriate code: TODO
+    35.4.1 HMI page 3 page and other objects
+    35.4.2 send test text to from Due upon page change from HMI
 
 2024-02-01
 vvvvvvvvv branch hmi_page3 merged into master and deleted vvvvvvvv
@@ -271,6 +274,14 @@ vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
 
 36. Test collision sensor ISR (in STANDBY mode) :
   36.1 modif ISR of right collision sensor to count up each entry
+vvvvvvvvv branch collision_sensor_devel merged into master vvvvvvvv
+
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch PID_control_compile vvvvvvvv
+
+37. PID When PID_COMPILE is not defined, kva_pid.h should no be compiled DONE
+   37.1 test dedined or not OK DONE
+vvvvvvvvv branch PID_control_compile merge into master vvvvvvvv
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -279,7 +290,7 @@ XX. Divers :
   34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
   34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
   34.3 updateDisplayAndIndicators(void) : case for page 2 ????
-  34.4 TODO only in PID a new develpement branch Concerning pid, when PID_COMPILE is not defined, kva_pid.h should no be compiled
+  34.4 
 
 
 Working on

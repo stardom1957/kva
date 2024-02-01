@@ -12,7 +12,7 @@
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
 //#define TELEMETRY               // compile telemetry code
-#define PID_COMPILE // compile kva_pid.h
+//#define PID_COMPILE // compile kva_pid.h
 
 // definition of debug levels
 // mainly replacing Serial.print and Serial.println by nothing when not needed
@@ -43,7 +43,9 @@
 #include "motor_control.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
+#ifdef PID_COMPILE
 #include "kva_pid.h"
+#endif
 
 //************** OPMODE ***************************
 //*********** EMERGENCY_MODE **********************
@@ -469,18 +471,20 @@ void setup()
 
   motorAllStop();
 
-  // prepare PID controlers for L & R motors
-    pid_L.setParams(1, 0.25, 1, 255); // left motor
-    pid_R.setParams(1, 0, 0, 255); // right motor
+  #ifdef PID_COMPILE
+    // prepare PID controlers for L & R motors
+      pid_L.setParams(1, 0.25, 1, 255); // left motor
+      pid_R.setParams(1, 0, 0, 255); // right motor
+    
+    // attach interrupt to S1 encoder of each motor
+    attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
+    attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
 
-  // attach interrupt to S1 encoder of each motor
-  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
-  attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
-
-  //setup timer interrupt for motor encoders
-  encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
-  encoderTimer.attachInterrupt(ISR_timerEncoder);
-  encoderTimer.start();
+    //setup timer interrupt for motor encoders
+    encoderTimer.setPeriod(ENCODER_MEASURE_INTERVAL); // in microseconds
+    encoderTimer.attachInterrupt(ISR_timerEncoder);
+    encoderTimer.start();
+  #endif //PID_COMPILE
 
   hmiFound = nexInit(); // start HMI
 
@@ -501,7 +505,7 @@ void setup()
   bsetRTC.attachPop(bsetRTCPopCallback, &bsetRTC);
 
   digitalWrite(LED_GREEN_SYSTEM_READY, HIGH); // now system is ready
-  digitalWrite(FLIPFLOP_PORT, LOW);
+  digitalWrite(LOOP_FLIPFLOP_PORT, LOW);
   debugln("Setup finished\n");
 
   #ifdef SENSORS_COMPILE
@@ -521,10 +525,10 @@ void setup()
 void loop()
 {
  //
- // reverse FLIPFLOP_PORT
+ // reverse LOOP_FLIPFLOP_PORT
  // to be monitored externally i.e. an oscilloscope
  //
- digitalWrite(FLIPFLOP_PORT, !digitalRead(FLIPFLOP_PORT));
+ digitalWrite(LOOP_FLIPFLOP_PORT, !digitalRead(LOOP_FLIPFLOP_PORT));
  updateDisplayAndIndicators();
  nexLoop(nex_listen_list);
  manageOpModeChange();

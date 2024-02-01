@@ -27,7 +27,7 @@ void sendTelemetry(byte);
 // define flipflop port to monitor
 // this will change every time the loop is run
 //
-#define FLIPFLOP_PORT 37
+#define LOOP_FLIPFLOP_PORT 37
 
 void setGPIOs(void);
 void updateDisplayAndIndicators(void);
