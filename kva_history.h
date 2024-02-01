@@ -266,6 +266,13 @@ vvvvvvvvv on branch hmi_page3 vvvvvvvv
 vvvvvvvvv branch hmi_page3 merged into master and deleted vvvvvvvv
 vvvvvvvvv return to main
 
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
+
+36. Test collision sensor ISR (in STANDBY mode) :
+  36.1 modif ISR of right collision sensor to count up each entry
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 XX. Divers :
