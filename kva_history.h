@@ -298,17 +298,22 @@ vvvvvvvvv branch collision_sensor_devel merge into master and deleted vvvvvvvv
 2024-02-13 pushed to remote
 
 
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch teleop_optimize vvvvvvvv
+
+39. revue of TELEOP mode:
+  39.1 report controller found even if not found (see run_setup variable)
+
+
 
 XX. Divers :
-  34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
-  34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
-  34.3 updateDisplayAndIndicators(void) : case for page 2 ????
-  34.4
+  LED_YELLOW_ALERT_CONDITION will have to review it's usage
+  updateDisplayAndIndicators(void) : case for page 2 ????
+
 
 
 Working on
  ----------
-38 <---
 28
 23.3.4.5 I2C level shifter
 

@@ -3,7 +3,7 @@
 
 //functions prototypes
 void set_ps2x(void);
-void motor_TELEOP_node_v1(void);
+void motor_TELEOP(void);
 void run_preset_course(void);
 void free_run(void);
 void standby(void);

@@ -22,19 +22,18 @@
 */ 
 #define DEBUG_LEVEL_0 0 // 1 means debug level 0 is active 0 means it's not
 #if DEBUG_LEVEL_0 == 1
-#define debugp(x) Serial.print(x)
-#define debug Serial.print
-#define debug_2arg(x, y) Serial.print(x, y)
-#define debugln Serial.println
-#define debugln(x) Serial.println(x)
-#define debugln_2arg(x, y) Serial.println(x, y)
-
+  #define debugp(x) Serial.print(x)
+  #define debug Serial.print
+  #define debug_2arg(x, y) Serial.print(x, y)
+  #define debugln Serial.println
+  #define debugln(x) Serial.println(x)
+  #define debugln_2arg(x, y) Serial.println(x, y)
 #else
-#define debugp(x)
-#define debug
-#define debug_2arg(x, y)
-#define debugln(x)
-#define debugln_2arg(x, y)
+  #define debugp(x)
+  #define debug
+  #define debug_2arg(x, y)
+  #define debugln(x)
+  #define debugln_2arg(x, y)
 #endif
 
 #define DEBUG_LEVEL_1 0 // 1 means debug 1 is active 0 means it's not
@@ -70,39 +69,50 @@
 #include "kva_pid.h"
 #endif
 
-//************** OPMODE ***************************
-//*********** EMERGENCY_MODE **********************
+/* Collision sensors - handling of emergency status ***
+   About counting time:
+      Since KVA is operated in a continuous polling mode, we cannot time the manoeuvers and wait times
+      by using a blocking function like delay()! We must cumulate the time in the variable emergency_run_time
+      to count time. The time is taken upon exit of this function and taken again at the entry.
 
-// run time definitions for emergency manoeuvers in microseconds
-// 1 000 000 microseconds by second
-/* About counting time:
-   Since KVA is operated in a continuous polling mode, we cannot time the manoeuvers and wait times
-   by using a blocking function like delay()! We must cumulate the time in the variable emergency_run_time
-   to count time. The time is taken upon exit of this function and taken again at the entry.
+      Since the majority of time is passed OUTSIDE of this function, we don't bother to count the time spent
+      working INSIDE!
 
-   Since the majority of time is passed OUTSIDE of this function, we don't bother to count the time spent
-   working INSIDE!
-
-   Each section handles the timing of particular menoever using a flag and a check of the total time elapse during
-   emergency against a particular timing value (i. e. WAIT1). At the end of the allowed time, the action pertaining
-   to the next section will be initiated.
-   
-   The elapsed time is calculated using these values in the #defines below (in microseconds)
+      Each section handles the timing of particular menoever using a flag and a check of the total time elapse during
+      emergency against a particular timing value (i. e. WAIT1). At the end of the allowed time, the action pertaining
+      to the next section will be initiated.
+      
+      The elapsed time is calculated using these values in the #defines below (in microseconds) for all
+      of these operations done in the following order.
 */
 
-#define EMERGENCY_WAIT_RUN_TIME1    2000000
-#define EMERGENCY_REVERSE_RUN_TIME  4000000
-#define EMERGENCY_WAIT_RUN_TIME2    2000000
-#define EMERGENCY_TURN_RUN_TIME     3000000
-#define EMERGENCY_WAIT_RUN_TIME3    3000000
+#define EMERGENCY_WAIT_RUN_TIME1    2000000 // delay time after setup in handle_emergency; right after motor stop
+#define EMERGENCY_REVERSE_RUN_TIME  4000000 // run motor in reverse for this amount of time
+#define EMERGENCY_WAIT_RUN_TIME2    2000000 // motor stopped for this amount of time after reverse
+#define EMERGENCY_TURN_RUN_TIME     3000000 // turn vehicule in place (left/right) for this amount of time
+#define EMERGENCY_WAIT_RUN_TIME3    3000000 // delay for this amount of time before exit and return to calloing mode
 
+/*
+ Used for timing operations in microseconds
+*/
 unsigned long emergency_function_last_exit_time{0};
+unsigned long emergency_run_time;
+
+/*
+  Flags used to control each particular operation for the amount of time specified bye *_RUN_TIMEx values above
+*/
+
 bool do_emergency_reverse{false};
 bool do_emergency_turn{false};
 bool do_wait1{false};
 bool do_wait2{false};
 bool do_wait3{false};
-unsigned long emergency_run_time;
+
+/*
+  turnRightOrLeft is used to randomly turn in one direction or the other depending on the ID of the
+  sensor triggered.
+*/
+
 short int turnRightOrLeft{0};
 
 void handle_emergency(byte calling_mode) {
@@ -142,16 +152,16 @@ void handle_emergency(byte calling_mode) {
          imediately at the end, starts do_wait1
       */
       if (contact_sensor_just_triggered) {
-        // init of flags and 
+        // turn motors off
+        debugln1("Setup... stopping motors");
+        motorAllStop();
+
+        // init and reset of flags
         bool do_emergency_reverse = false;
         bool do_emergency_turn = false;
         bool do_wait2 = false;
         bool do_wait3 = false;
         emergency_run_time = 0; //reset time cownter
-
-        // turn motors off
-        debugln1("Setup... stopping motors");
-        motorAllStop();
 
         debug1("emergency_run_time= ");
         debug1(float(emergency_run_time) / 1000000, DEC);
@@ -491,12 +501,12 @@ void runOpMode(byte om) {
           break;
 
           case TELEOP: // teleoperation by gamepad type controller
-          motor_TELEOP_node_v1();
+          motor_TELEOP();
           break;
 
           case FREE_RUN:
             free_run();
-            break;
+          break;
           
           default:
           standby(); //safest thing to do

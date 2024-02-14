@@ -132,28 +132,34 @@ void set_ps2x(void) {
 //********************************************
 //***************** TELEOP *******************
 
-void motor_TELEOP_node_v1(void) {
+void motor_TELEOP(void) {
   byte leftMotorDirection;
   byte rightMotorDirection;
   int ps2RY; //we are using the right hand joystick
   int ps2RX;  
   //const int atRestZone {12};  // buffer zone to indicate stick is at rest in the middle
-  const int atRestZone {3};  // buffer zone to indicate stick is at rest in the middle
-  boolean emergency_run{false}; // indicates we are moving using emergency buttons
+  const int atRestZone {3};     // buffer zone to indicate stick is at rest in the middle
+  
+  /*
+    emergency_run indicate we are moving using emergency buttons: triangle, square, circle and cross.
+  */
+  
+  boolean emergency_run{false};
 
   if (run_setup) {
-    currentOpModeName = "TELEOP";
+    currentOpModeName = "TELEOP"; // label of this mode in page 0 of HMI
     run_setup = false;
+
   }
 
-  if(PS2_config_result == 254 || run_setup) { //try to setup controler up to 10 times
-   // debug debugln("Setting controler...");
-   byte sc;
-   for (sc=0; sc<10; sc++) {
-     set_ps2x();
-     if (PS2_config_result == 0) break;
-     delay(50);
-   }
+  if(PS2_config_result == 254) { //try to setup controler up to 10 times
+    debugln("Setting controler...");
+    byte sc;
+    for (sc=0; sc<10; sc++) {
+      set_ps2x();
+      if (PS2_config_result == 0) break;
+      delay(50);
+    }
   }
 
   // if no controler was found on last run, then ensure we will attempt to setup controler in next run
@@ -167,7 +173,6 @@ void motor_TELEOP_node_v1(void) {
   //****************** this is the dead man's grip
 
   if(ps2x.Button(PSB_L1)) {
-
     //*************EMERGENCY ROTATION AND FORWARD/BACKWARD ************
     // using controller triangle, cross, square and circle
     //slow forward
@@ -220,30 +225,30 @@ void motor_TELEOP_node_v1(void) {
    ps2RX = ps2x.Analog(PSS_RX); //Raw right stick X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
    ps2RY = ps2x.Analog(PSS_RY); //Raw right stick Y axis values are from 0 (full up) to 255 (full down), 127 is at rest in middle
 
+    /*
+      motor speeds is determined from stick values ps2RY, so
+      we need to map the reading from 0 to 255 and set BOTH
+      motors to that speed.
+
+    */
+
+   // This is reverse
    if (ps2RY >= (127 + atRestZone)) {
-     // This is reverse
      leftMotorDirection = BACKWARD;
      rightMotorDirection = BACKWARD;
 
-     //motor speeds is determined from stick values ps2RY
-     // we need to map the reading from 0 to 255
-
-     // map(value, fromLow, fromHigh, toLow, toHigh)
+     //             map(value, fromLow, fromHigh, toLow, toHigh)
      motorSpeed_L = map(ps2RY, (127 + atRestZone), 255, 0, 255);
      motorSpeed_R = motorSpeed_L;
    }
   
+   // this is forward
    else if (ps2RY <= (127 - atRestZone)) {
-    // This is Forward
      leftMotorDirection = FORWARD;
      rightMotorDirection = FORWARD;
 
-    //motor speeds is determined from stick values ps2RY
-    //we need to map reading from 0 to 255
-
-    // map(value, fromLow, fromHigh, toLow, toHigh)
+    //             map(value, fromLow, fromHigh, toLow, toHigh)
     motorSpeed_L = map(ps2RY, (127 - atRestZone), 0, 0, 255);
-    //motorSpeed_R = map(ps2RY, (127 - atRestZone), 0, 0, 255); 
     motorSpeed_R = motorSpeed_L;
    }
    else {
@@ -252,23 +257,29 @@ void motor_TELEOP_node_v1(void) {
     motorSpeed_R = 0; 
    }
 
-  /*
-   Now do the steering
-   The Horizontal position X will "weigh" the motor speed
-   Values for each motor
+  /* Now do the steering
+   
+   The Horizontal position X will "weigh" the motor speed values for each motor.
 
-   ps2RX determines the steering direction
-   LEFT  is ps2RX <= (128 - atRestZone)
-   RIGHT is ps2RX >= (128 + atRestZone)
+   ps2RX determines the steering direction with:
+     LEFT: ps2RX <= (128 - atRestZone)
+    RIGHT: ps2RX >= (128 + atRestZone)
+
+   Raw X axis values are from 0 (full left) to 255 (full right) and
+   128 is at rest in middle.
+
    */
-    //Raw X axis values are from 0 (full left) to 255 (full right), 128 is at rest in middle
-  if (ps2RX <= (128 - atRestZone)) {
-    // We move to the left
-    // Map the number to a value of 255 maximum
-    // map(value, fromLow, fromHigh, toLow, toHigh)
 
-    //ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
+  if (ps2RX <= (128 - atRestZone)) {
+    /*
+     We move to the left
+     Map the number to a value of 255 maximum
+     
+    */
+    //debug ps2RX = map(ps2RX, 0, (128 - atRestZone), 255, 0);
+    //      map(value, fromLow, fromHigh, toLow, toHigh)
     ps2RX = map(ps2RX, 0, 128, 128, 0);
+
     //ps2RX = map(ps2RX, 0, 128, 255, 0);
     motorSpeed_L = motorSpeed_L - ps2RX;
     motorSpeed_R = motorSpeed_R + ps2RX;
@@ -278,11 +289,15 @@ void motor_TELEOP_node_v1(void) {
     if (motorSpeed_R > 255) motorSpeed_R = 255;
   }
     else if (ps2RX >= (128 + atRestZone)) {
-    // we move to the right
-    // Map the number to a value of 255 maximum
-      // map(value, fromLow, fromHigh, toLow, toHigh)
+    /*
+     we move to the right
+     Map the number to a value of 255 maximum
+    
+    */
       //ps2RX = map(ps2RX, (128 + atRestZone), 255, 0, 255);
+      //      map(value, fromLow, fromHigh, toLow, toHigh)
       ps2RX = map(ps2RX, 128, 255, 0, 128);
+
       //ps2RX = map(ps2RX, 128, 255, 0, 255);
       motorSpeed_L = motorSpeed_L + ps2RX;
       motorSpeed_R = motorSpeed_R - ps2RX;
@@ -306,9 +321,8 @@ void motor_TELEOP_node_v1(void) {
         motorAllStop();
   }
   //debug delay(50);
-  //debug
-  run_setup = false;
-} // fin motor_TELEOP_node_v1
+  // debug run_setup = false;
+} // fin motor_TELEOP
 
 
 #endif //MOTOR_CONTROL_COMPILE
