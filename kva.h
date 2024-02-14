@@ -45,13 +45,11 @@ void incrementField(int);
 void setRTCfromInput(void);
 
 //opmodes
-#define STANDBY 0                        // at rest but diagnostic and communication running
-#define SENSORS_DEVELOPEMENT 15          // as it says
-#define RUN_PRESET_COURSE 30             // executes a series of preset commands
-#define FREE_RUN  35                     // runs in obstacle collision avoidance on
-#define TELEOP 10                        // Teleoperation with a joystick // TELEOP: Joystick operation
-#define EMERGENCY_MODE 45                // When a contact sensor has triggered or distance is short
-bool run_setup{true};                    // Used to bypass code run when first entry in a function
+#define STANDBY            0 // at rest but diagnostic and communication running
+#define RUN_PRESET_COURSE 10 // executes a series of preset commands
+#define FREE_RUN          20 // runs in obstacle collision avoidance on
+#define TELEOP            30 // Teleoperation with a joystick // TELEOP: Joystick operation
+bool run_setup{true};        // Used to run appropriate code when first entry in an opmode function
 
 // *** STATUS FOR OPMODE CONTROL
 byte currentOpMode;          // operation mode

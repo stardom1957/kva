@@ -14,23 +14,46 @@
 //#define TELEMETRY               // compile telemetry code
 //#define PID_COMPILE // compile kva_pid.h
 
-// definition of debug levels
-// mainly replacing Serial.print and Serial.println by nothing when not needed
-// that is DEBUG == 0
-
-#define DEBUG 1 // 1 means debugging is active 0 means it's not
-#if DEBUG == 1
-#define debug(x) Serial.print(x)
+/* definition of debug levels
+    mainly replacing Serial.print and Serial.println by nothing when not needed
+    that is:
+     DEBUG_LEVEL_0 used to debug HMI
+     DEBUG_LEVEL_1 used to debug handle_emergency
+*/ 
+#define DEBUG_LEVEL_0 0 // 1 means debug level 0 is active 0 means it's not
+#if DEBUG_LEVEL_0 == 1
+#define debugp(x) Serial.print(x)
+#define debug Serial.print
 #define debug_2arg(x, y) Serial.print(x, y)
+#define debugln Serial.println
 #define debugln(x) Serial.println(x)
 #define debugln_2arg(x, y) Serial.println(x, y)
 
 #else
-#define debug(x)
+#define debugp(x)
+#define debug
 #define debug_2arg(x, y)
 #define debugln(x)
 #define debugln_2arg(x, y)
 #endif
+
+#define DEBUG_LEVEL_1 0 // 1 means debug 1 is active 0 means it's not
+#if DEBUG_LEVEL_1 == 1
+  #define debug1(x) Serial.print(x)
+  #define debug1 Serial.print
+  #define debug_2arg1(x, y) Serial.print(x, y)
+  #define debugln1(x) Serial.println(x)
+  #define debugln1 Serial.println
+  #define debugln_2arg1(x, y) Serial.println(x, y)
+
+#else
+  #define debug1(x)
+  #define debug1
+  #define debug_2arg1(x, y)
+  #define debugln1(x)
+  #define debugln_2arg1(x, y)
+#endif
+
 
 #include <PS2X_lib.h>  //for teleoperation with PS2 style remote. Revised KurtE library (Github)
 
@@ -52,86 +75,273 @@
 
 // run time definitions for emergency manoeuvers in microseconds
 // 1 000 000 microseconds by second
-#define EMERGENCY_REVERSE_RUN_TIME 2000000
-#define EMERGENCY_TURN_RUN_TIME 2500000
-#define EMERGENCY_WAIT_TIME 500000 // wait time between emergency reverse and turn
+/* About counting time:
+   Since KVA is operated in a continuous polling mode, we cannot time the manoeuvers and wait times
+   by using a blocking function like delay()! We must cumulate the time in the variable emergency_run_time
+   to count time. The time is taken upon exit of this function and taken again at the entry.
+
+   Since the majority of time is passed OUTSIDE of this function, we don't bother to count the time spent
+   working INSIDE!
+
+   Each section handles the timing of particular menoever using a flag and a check of the total time elapse during
+   emergency against a particular timing value (i. e. WAIT1). At the end of the allowed time, the action pertaining
+   to the next section will be initiated.
+   
+   The elapsed time is calculated using these values in the #defines below (in microseconds)
+*/
+
+#define EMERGENCY_WAIT_RUN_TIME1    2000000
+#define EMERGENCY_REVERSE_RUN_TIME  4000000
+#define EMERGENCY_WAIT_RUN_TIME2    2000000
+#define EMERGENCY_TURN_RUN_TIME     3000000
+#define EMERGENCY_WAIT_RUN_TIME3    3000000
 
 unsigned long emergency_function_last_exit_time{0};
 bool do_emergency_reverse{false};
-bool do_wait{false};
-bool do_emergency_turn{true};
+bool do_emergency_turn{false};
+bool do_wait1{false};
+bool do_wait2{false};
+bool do_wait3{false};
 unsigned long emergency_run_time;
-int turnRightOrLeft{0};
+short int turnRightOrLeft{0};
 
 void handle_emergency(byte calling_mode) {
-  // update emergency run time to account for the time past OUTSIDE this function
-  // if it's the first entry (contact_sensor_just_triggered is set), the value is irrelevant and will be set to 0
-  // in each case upon first entry
-  
+  // calculate the time elapsed since last exit this function
   emergency_run_time += (micros() - emergency_function_last_exit_time);
   
   switch(calling_mode) {
-    case FREE_RUN:
-      /* About wait times:
-         The majority of time is passed OUTSIDE of this function!
-         
-         Therefore, do_wait is a flag used to freeze an ongoing operation by preventing the start
-         of any other operation before EMERGENCY_WAIT_TIME has elapsed for this particular operation.
+    case STANDBY:
+      /* setup ******
+         Setup for first entry in emergency mode; that is, right after one of the ISR
+         has set contact_sensor_just_triggered and;
+         imediately at the end, starts do_wait1
       */
-
-      
-      /* *******************************************
-         Setup for first entry; that is            *
-         right after contact_sensor_just_triggered *
-         is set by one of the sensor contact ISR   *
-        ********************************************
-      */
-
       if (contact_sensor_just_triggered) {
-        debugln("in contact_sensor_just_triggered");
+        debugln1("In STANDBY mode. Reset of contact trigger.");
+        debug1("contact_sensors_ID= ");
+        debugln1(contact_sensors_ID);
+        debugln1();
+
+        // init of flags and 
+        emergency_run_time = 0; //reset time cownter
+        nbr_of_contact = 0;
+
+        // Wher'e not moving so terminate emergency state and reset variables
         contact_sensor_just_triggered = false;
-        emergency_run_time = 0;
-        do_emergency_reverse = true; // start reverse operation
-        do_wait = false; // wait time in effect
-        do_emergency_turn = false; // not yet doing turn
+        state_of_emergency = false;
+        contact_sensors_ID = 0; // reset sensor contact ID
+      } // if contact_sensor_just_triggered
+
+    break;
+
+    case FREE_RUN:
+    case TELEOP:
+      /* setup ******
+         Setup for first entry in emergency mode; that is, right after one of the ISR
+         has set contact_sensor_just_triggered and;
+         imediately at the end, starts do_wait1
+      */
+      if (contact_sensor_just_triggered) {
+        // init of flags and 
+        bool do_emergency_reverse = false;
+        bool do_emergency_turn = false;
+        bool do_wait2 = false;
+        bool do_wait3 = false;
+        emergency_run_time = 0; //reset time cownter
+
+        // turn motors off
+        debugln1("Setup... stopping motors");
+        motorAllStop();
+
+        debug1("emergency_run_time= ");
+        debug1(float(emergency_run_time) / 1000000, DEC);
+        debugln1(" s");
+
+        debug1("Number of contacts detected in ISR= ");
+        debugln1(nbr_of_contact);
+        debugln1();
+
+        digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+        debugln1("Start do_wait1");
 
         // initialise random direction for turn when center contact sensor
         // has triggered.
-        // We want to turn left or right randomly 50% of the time in on direction.
-        turnRightOrLeft = random(0, 1);
-        debug(" turnRightOrLeft: ");
-        debugln(turnRightOrLeft);
-        debugln();
-      }
-      
-      // *******************
-      // emergency reverse *
-      // *******************
-      
-      if ( do_emergency_reverse) { 
-	      if ( emergency_run_time < EMERGENCY_REVERSE_RUN_TIME ) {
-          debugln("in do_emergency_reverse, motors should run in reverse");
+        // We want to turn left or right randomly 50% of the time each one direction
+        turnRightOrLeft = random(0, 2);
+
+        // terminates this step and starts next one
+        contact_sensor_just_triggered = false;
+        do_wait1 = true;
+
+      } // if contact_sensor_just_triggered
+
+      /* do_wait1 ******
+        Handles timing of do_wait1. At this point the timer (emergency_run_time) starts to count and we must
+        accumulate the time for a delay of WAIT1 microseconds and;
+        at the end of WAIT1 micriseconds, starts do_emergency_reverse
+      */
+
+      if (do_wait1 && (emergency_run_time > EMERGENCY_WAIT_RUN_TIME1)) {
+          debug1("emergency_run_time= ");
+          debug1(float(emergency_run_time) / 1000000, DEC);
+          debugln1(" s");
+
+          debug1("Number of contacts detected in ISR= ");
+          debugln1(nbr_of_contact);
+          debugln1();
+
+        // terminates this step and starts next one
+          do_wait1 = false;
+          do_emergency_reverse = true;
+
+          // start reversing motor
+          debugln1("Start reverse");
           motorLeftSet(EMERGENCY_SLOW, BACKWARD);
           motorRightSet(EMERGENCY_SLOW, BACKWARD);
-	      }
-          else {
-            // stop both motors
-            digitalWrite(ENB_R, LOW);
-            digitalWrite(ENA_L_PIN, LOW);
-          }
+      }
 
-        // waiting EMERGENCY_WAIT_TIME
-        if ( emergency_run_time > (EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME) ) {
-            do_emergency_reverse = false;
-            do_emergency = false;  // used in run_op_mode
-            run_setup = true; // to ensure that setup code is run upon reentry in calling op mode
+      /* do_emergency_reverse ******
+        Handles timing of do_emergency_reverse and;
+        at the end of EMERGENCY_REVERSE_RUN_TIME microseconds, starts do_wait2
+      */
+      if (do_emergency_reverse && emergency_run_time > \
+            (EMERGENCY_WAIT_RUN_TIME1 + EMERGENCY_REVERSE_RUN_TIME)) {
+         /*
+           Finished reversing, initiate wait of WAIT2 time 
+         */
+           debug1("emergency_run_time= ");
+           debug1(float(emergency_run_time) / 1000000, DEC);
+           debugln1(" s");
+
+           debug1("Number of contacts detected in ISR= ");
+           debugln1(nbr_of_contact);
+           debugln1();
+
+           debugln1("Start WAIT2");
+
+           // terminates this step and starts next one
+           // turn motors off
+           debugln1("Stopping motors");
+           motorAllStop();
+           do_wait2 = true;
+           do_emergency_reverse = false;
+      } // do_emergency_reverse
+
+      /* do_wait2 ******
+        Handle timing of do_wait2 and;
+        at the end of EMERGENCY_WAIT_RUN_TIME2 microseconds, starts do_emergency_turn
+      */
+      if (do_wait2 && emergency_run_time > \
+           (EMERGENCY_WAIT_RUN_TIME1 + EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_RUN_TIME2)) {
+        debug1("emergency_run_time= ");
+        debug1(float(emergency_run_time) / 1000000, DEC);
+        debugln1(" s");
+
+        debug1("Number of contacts detected in ISR= ");
+        debugln1(nbr_of_contact);
+        debugln1();
+
+        // terminates this step and starts next one
+        do_wait2 = false;
+        do_emergency_turn = true;
+        debugln1("Start the turn");
+
+        debug1("contact_sensors_ID= ");
+        debugln1(contact_sensors_ID);
+        debugln1();
+
+        // turn direction is dependant of wich contact sensor is triggered
+        switch(contact_sensors_ID) {
+          case RIGHT_CONTACT_TRIGGERED:
+          case RIGHT_CONTACT_TRIGGERED + CENTER_CONTACT_TRIGGERED: 
+            // turn left
+            vehiculeRotateLeft(EMERGENCY_SLOW);
+            debugln1("Turning left");
+          break;
+
+          case CENTER_CONTACT_TRIGGERED:
+            // turn as set in entry setup section above
+            if (turnRightOrLeft) { //0 is left
+               vehiculeRotateLeft(EMERGENCY_SLOW);
+               debugln1("at random turning left");
+            }
+              else { //1 is right
+                vehiculeRotateRight(EMERGENCY_SLOW);
+                debugln1("at random turning right");
+              }
+          break;
+
+          case LEFT_CONTACT_TRIGGERED:
+          case LEFT_CONTACT_TRIGGERED + CENTER_CONTACT_TRIGGERED: 
+          // turn right
+            vehiculeRotateRight(EMERGENCY_SLOW);
+            debugln1("Turning right");
+          break;
+
+          default: // all other contact combinaison are random turn
+            debugln1("Multiple contact combinaison");
+            if (turnRightOrLeft) { //0 is left
+               vehiculeRotateLeft(EMERGENCY_SLOW);
+               debugln1("at random turning left");
+            }
+              else { //1 is right
+                vehiculeRotateRight(EMERGENCY_SLOW);
+                debugln1("at random turning right");
+              }
+          break;
         }
       }
 
+      /* do_emergency_turn ******
+        Handle timing of do_emergency_turn and;
+        at the end of EMERGENCY_TURN_RUN_TIME microseconds, stars do_wait3
+      */
+      if (do_emergency_turn && emergency_run_time > \
+           (EMERGENCY_WAIT_RUN_TIME1 + EMERGENCY_REVERSE_RUN_TIME + \
+              EMERGENCY_WAIT_RUN_TIME2 + EMERGENCY_TURN_RUN_TIME)) {
+
+            debug1("emergency_run_time= ");
+            debug1(float(emergency_run_time) / 1000000, DEC);
+            debugln1(" s");
+
+            debug1("Number of contacts detected in ISR= ");
+            debugln1(nbr_of_contact);
+            debugln1();
+
+            debugln1("Stopping the turn");
+            // turn motors off
+            motorAllStop();
+
+            do_wait3 = true;
+            do_emergency_turn = false;
+       }
+
+      /* do_wait3 ******
+        Handle timing of do_wait3 and;
+        at the end of EMERGENCY_WAIT_RUN_TIME3 microseconds, get out of emergency mode
+      */
+      if (do_wait3 && emergency_run_time > \
+           (EMERGENCY_WAIT_RUN_TIME1 + EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_RUN_TIME2 +\
+             EMERGENCY_TURN_RUN_TIME + EMERGENCY_WAIT_RUN_TIME3)) {
+        debug1("emergency_run_time= ");
+        debug1(float(emergency_run_time) / 1000000, DEC);
+        debugln1(" s");
+
+        debug1("Number of contacts detected in ISR= ");
+        debugln1(nbr_of_contact);
+        debugln1();
+        /*
+           Finished do_wait3, wher'e going out of emergency mode wich will put
+           us right back a the calling mode (calling_mode)
+        */
+         digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);
+         debugln1("Going out of emergency mode\n");
+         state_of_emergency = false;
+         contact_sensors_ID = 0; // reset contact sensor ID
+         nbr_of_contact = 0;
+      }
     break; // FREE_RUN
 
-    case TELEOP:
-    break; //TELEOP
 
     default:
     break;
@@ -145,6 +355,10 @@ void handle_emergency(byte calling_mode) {
 //*********** RUN_PRESET_COURSE *******************
 
 void run_preset_course(void) {
+  if (run_setup) {
+    run_setup = false;
+    currentOpModeName = "RUN_PRESET_COURSE";
+  }
   Serial.println("Both motors FORWARD for 4s");
   motorLeftSet(200, FORWARD);
   motorRightSet(200, FORWARD);
@@ -174,7 +388,7 @@ void run_preset_course(void) {
   delay(2000);
   Serial.println("___ wait 5 s______");
 
-  //while(true); //we're only doing this once
+  //while(true); //we're only doing this onceemer
   delay(5000);
 }
 
@@ -184,9 +398,11 @@ void run_preset_course(void) {
 void standby(void) {
   // #TODO
   if (run_setup) {
+     currentOpModeName = "STANDBY";
      motorAllStop();
      run_setup = false;
   }
+  ; //do nothong
 }
 
 //************ OPMODE ************************
@@ -261,40 +477,34 @@ void free_run(void) {
 
 // runs the selected opMode
 void runOpMode(byte om) {
-  switch (om) {
-    case STANDBY:
-     currentOpModeName = "STANDBY";
-     motorAllStop();
-     standby();
-     break;
+  if (state_of_emergency) {
+      handle_emergency(om);
+  }
+    else {
+      switch (om) {
+          case STANDBY:
+          standby();
+          break;
 
-    case SENSORS_DEVELOPEMENT:
-     currentOpModeName = "SENS. DEVEL.";
-     sensorDeveloppement();
-     break;
+          case RUN_PRESET_COURSE:
+          run_preset_course();
+          break;
 
-    case RUN_PRESET_COURSE:
-     currentOpModeName = "RUN_PRESET_COURSE";
-     run_preset_course();
-     break;
+          case TELEOP: // teleoperation by gamepad type controller
+          motor_TELEOP_node_v1();
+          break;
 
-    case TELEOP: // teleoperation by gamepad type controller
-     motor_TELEOP_node_v1();
-     break;
-
-    case FREE_RUN:
-     if (do_emergency) {
-      handle_emergency(FREE_RUN);
-     }
-       else {
-         free_run();
-       }
-     break;
-    
-    default:
-     standby(); //safest thing to do
-  }  
+          case FREE_RUN:
+            free_run();
+            break;
+          
+          default:
+          standby(); //safest thing to do
+        }  // end switch
+    } // else fo_emergency
 }
+
+
 // put part of a string into char char_buffer
 void strToChar(String s) {
   memset(char_buffer, 0, sizeof(char_buffer));
@@ -308,7 +518,7 @@ void setGPIOs(void) {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  // set all the motor control pins to outputs
+  // set all the motor control pins to outputsattachInterrupt
   pinMode(ENA_L_PIN, OUTPUT);
   pinMode(ENB_R, OUTPUT);
   pinMode(IN1_PIN, OUTPUT);
@@ -339,6 +549,19 @@ void setGPIOs(void) {
 void manageOpModeChange(void) {
   if (opModeChangeRequested && opModeChangeAutorized) {
    debugln("in manageOpModeChange");
+
+   // stop motors
+   motorAllStop();
+   
+   // make sure that emergency mode is cancelled
+   if (state_of_emergency) {
+      state_of_emergency = false;
+      digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW);
+      contact_sensor_just_triggered = false;
+      contact_sensors_ID = 0;
+   }
+
+
    //dbSerialPrintln("  ");
    currentOpMode = requestedOpMode;
    run_setup = true; // ensures that mode setup code is run during first function entry of current opmode
@@ -359,7 +582,7 @@ void manageOpModeChange(void) {
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) {
      //yellow LED on if any adverse condition occur
-     digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
+     // debug digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
 
      //check RTC status
      if (rtc.isrunning() == 0) {
@@ -407,8 +630,8 @@ void updateDisplayAndIndicators(void) {
      strToChar(currentOpModeName); // mode name converted to chr in char_buffer
      topmode.setText(char_buffer);
 
-    // update time field
-     //String tm{NULL};
+    // update time      opmode
+    //String tm{NULL};
      memset(char_buffer, 0, sizeof(char_buffer));
      if (rtcFound) {
       // get time with seconds
@@ -423,7 +646,6 @@ void updateDisplayAndIndicators(void) {
         ttime.setText(char_buffer);
         ttime.Set_background_color_bco(RED);
        }
-     
      tready.Set_background_color_bco(GREEN);
 
      // RTC status
@@ -454,7 +676,7 @@ void updateDisplayAndIndicators(void) {
 void setup()
 {
   Serial.begin(9600);    // for debuging, handled by Nextion library see Nextion.h
-  Serial1.begin(115200); // XBee for telemetry
+  Serial1.begin(115200); // XBee for telemetryopmode
   Serial2.begin(115200); // HMI communication
 
   setGPIOs();
@@ -475,7 +697,7 @@ void setup()
     // prepare PID controlers for L & R motors
       pid_L.setParams(1, 0.25, 1, 255); // left motor
       pid_R.setParams(1, 0, 0, 255); // right motor
-    
+    opmode
     // attach interrupt to S1 encoder of each motor
     attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
     attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
@@ -488,7 +710,9 @@ void setup()
 
   hmiFound = nexInit(); // start HMI
 
-  /* attach all event callback functions to HMI components. */
+  /* attach all event callback functions to HMI co
+ //
+ // reverse LOOP_FLIPFLOP_PORTmponents. */
 
   bstat1.attachPop(bstat1PopCallback, &bstat1);
   bstat2.attachPop(bstat2PopCallback, &bstat2);
@@ -513,14 +737,21 @@ void setup()
        attachInterrupt(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN), isr_right_contact_sensor, RISING);
        attachInterrupt(digitalPinToInterrupt(CENTER_CONTACT_SENSOR_PIN), isr_center_contact_sensor, RISING);
        attachInterrupt(digitalPinToInterrupt(LEFT_CONTACT_SENSOR_PIN), isr_left_contact_sensor, RISING);
-  #endif  
+
+       // clear pending status of interrupt on each pin of the above pins 
+       //NVIC_ClearPendingIRQ(PIOC_IRQn);
+       //(PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+       //debug NVIC_ClearPendingIRQ(PIOC_IRQn); // (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+       //debug NVIC_ClearPendingIRQ(PIOC_IRQn); // (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+ #endif  
 
     // set random function to decide certain events
        randomSeed(analogRead(ANALOG_PORT_RANDOM_SEED));
 
   /* this is the default opmode at start of vehicule */
   currentOpMode = STANDBY;
-}
+
+} //end setup()
 
 void loop()
 {

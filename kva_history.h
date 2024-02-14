@@ -269,12 +269,8 @@ vvvvvvvvv on branch hmi_page3 vvvvvvvv
 vvvvvvvvv branch hmi_page3 merged into master and deleted vvvvvvvv
 vvvvvvvvv return to main
 
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
 
-36. Test collision sensor ISR (in STANDBY mode) :
-  36.1 modif ISR of right collision sensor to count up each entry
-vvvvvvvvv branch collision_sensor_devel merged into master vvvvvvvv
+36. empty
 
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch PID_control_compile vvvvvvvv
@@ -283,85 +279,93 @@ vvvvvvvvv on branch PID_control_compile vvvvvvvv
    37.1 test dedined or not OK DONE
 vvvvvvvvv branch PID_control_compile merge into master and deleted vvvvvvvv
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
+
+38. Test collision sensor ISR (developped in STANDBY mode) :
+  38.1 modif ISR of right collision sensor to count up each entry DONE
+  38.2 modif run op before case to intercept when collision occured DONE
+  38.3 in setup clear pending interrupt of each interrupt on pin 30, 32 and 34
+  38.4 is this ok #define JUST_DO_NOTHING 1000000UL for unsigned long?
+  38.5 How to handle op mode change during handling of emergency mode??? DONE
+  38.6 Do multiples rapid interrupts during emergency handling will provoque back to back execution of the function?
+  38.7 Handle when contact is made with 2 sensors at the same time (programmed)
+  38.7.1 verify all possible case of contact
+  38.7.2 hit multiple times on different sensors
+  37.7.3 rapid hit on one sensor
 
 
 XX. Divers :
   34.1 LED_YELLOW_ALERT_CONDITION will have to review it's usage
   34.2 TELEOP mode needs a real good review : report controller found even if not found (see run_setup variable)
   34.3 updateDisplayAndIndicators(void) : case for page 2 ????
-  34.4 
+  34.4
 
 
 Working on
  ----------
-34 <---
+38 <---
 28
 23.3.4.5 I2C level shifter
- */
-
-      // ****************      
-      // emergency turn *
-      // ****************
-/*
-      if ( do_emergency_turn && !do_wait ) {
-        if ( (EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME < emergency_run_time) &&
-             (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_WAIT_TIME + EMERGENCY_TURN_RUN_TIME) ) {
-
-          // turn direction is dependant of wich contact sensor is triggered
-          debugln("in handle emergency turn");
-          switch(contact_sensors_ID) {
-            case RIGHT_CONTACT_TRIGGERED:
-              // turn left
-              vehiculeRotateLeft(EMERGENCY_SLOW);
-              break;
-
-            case CENTER_CONTACT_TRIGGERED:
-              // turn as set in entry setup section above
-              if (turnRightOrLeft) { vehiculeRotateLeft(EMERGENCY_SLOW); }
-                 else { vehiculeRotateRight(EMERGENCY_SLOW); }
-              break;
-
-            case LEFT_CONTACT_TRIGGERED:
-              // turn right
-              vehiculeRotateRight(EMERGENCY_SLOW);
-              break;
-          }
-        }
-          // the turn is finished
-          else {
-            do_emergency_turn = false;
-            // stop both motors
-            digitalWrite(ENB_R, LOW);
-            digitalWrite(ENA_L_PIN, LOW);
-            do_wait = true; // flag for last wait time before exit of emergency
-          }
-      }  // do_emergency_turn && !do_wait
-
-      // ************************
-      // Going out of emergency *
-      // ************************
-
-      // last wait time before going out of emergency
-      
-      if ( do_wait &&
-           !do_emergency_reverse &&
-           !do_emergency_turn &&
-           (emergency_run_time < EMERGENCY_REVERSE_RUN_TIME + EMERGENCY_TURN_RUN_TIME + 2 * EMERGENCY_WAIT_TIME) ) { // where finished emergency
-        ; // do nothing during wait time
-      }
-
-        else {
-          // setup to for calling_mode re-entry
-          do_emergency = false;  // used in run_op_mode
-          run_setup = true; // to ensure that setup code is run upon reentry in calling op mode
-
-          // reset contact_sensor_triggered_ID
-          contact_sensors_ID = 0;
-          // re-attach interrupts
-          //attachInterrupt(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN), isr_right_contact_sensor, RISING);
-        }
 
 
+        // pending status of interrupt on pin 34 (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+        Serial.print("Pending status of PIOC: ");
+        Serial.println(NVIC_GetPendingIRQ(PIOC_IRQn));
+
+        // clear pending status of interrupt on pin 34 (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+        Serial.println("Attempting to clear pending status of PIOC...");
+        NVIC_ClearPendingIRQ(PIOC_IRQn);
+        delay(500);
+
+//#define DO_THIS_ONLY_ONCE 1 // like it says!
+
+#ifdef DO_THIS_ONLY_ONCE
+#define SCS_BASE            (0xE000E000UL)                            //!< System Control Space Base Address
+#define NVIC_BASE           (SCS_BASE +  0x0100UL)                    //!< NVIC Base Address                
+#define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   //!< NVIC configuration struct        
+
+// \brief  Structure type to access the Nested Vectored Interrupt Controller (NVIC).
+
+typedef struct
+{
+  __IO uint32_t ISER[8];                 //!< Offset: 0x000 (R/W)  Interrupt Set Enable Register           
+       uint32_t RESERVED0[24];
+  __IO uint32_t ICER[8];                 //!< Offset: 0x080 (R/W)  Interrupt Clear Enable Register         
+       uint32_t RSERVED1[24];
+  __IO uint32_t ISPR[8];                 //!< Offset: 0x100 (R/W)  Interrupt Set Pending Register          
+       uint32_t RESERVED2[24];
+  __IO uint32_t ICPR[8];                 //!< Offset: 0x180 (R/W)  Interrupt Clear Pending Register        
+       uint32_t RESERVED3[24];
+  __IO uint32_t IABR[8];                 //!< Offset: 0x200 (R/W)  Interrupt Active bit Register           
+       uint32_t RESERVED4[56];
+  __IO uint8_t  IP[240];                 //!< Offset: 0x300 (R/W)  Interrupt Priority Register (8Bit wide) 
+       uint32_t RESERVED5[644];
+  __O  uint32_t STIR;                    //!< Offset: 0xE00 ( /W)  Software Trigger Interrupt Register     
+}  NVIC_Type;
+
+  NVIC_Type NVIC_test;
+  NVIC_test.ISER[0] = '4';
+  Serial.print("NVIC_test.ISER[0]= ");
+  Serial.println(NVIC_test.ISER[0]);
+
+  Serial.print("digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN)= ");
+  Serial.println(digitalPinToInterrupt(RIGHT_CONTACT_SENSOR_PIN));
+
+
+    //((p) < NUM_DIGITAL_PINS ? (p) : -1);
+    Serial.print("NVIC_BASE= 0x");
+    Serial.println(NVIC_BASE, HEX);
+    uint32_t IRQn{13};
+    //NVIC->ICPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); // Clear pending interrupt
+    Serial.print("(uint32_t)(IRQn) >> 5)= ");
+    Serial.println((uint32_t)(IRQn) >> 5);
+
+    Serial.print("1 << ((uint32_t)(8) & 0x1F)= ");
+    Serial.println(1 << ((uint32_t)(8) & 0x1F), BIN);
+#endif
+
+
+*/
 
 #endif

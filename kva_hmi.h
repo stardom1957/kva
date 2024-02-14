@@ -159,9 +159,6 @@ void setOpmodeButtonColors(void) {
      bsby.Set_background_color_bco(GREEN);
      break;
 
-    case SENSORS_DEVELOPEMENT:
-     break;
-
     case RUN_PRESET_COURSE:
      break;
 
@@ -181,7 +178,7 @@ void setOpmodeButtonColors(void) {
      ;
   } // end switch(currentOpMode)
 
-  // if opModeChangeRequested do a second pass to set color
+  // if opModeChangeRequested, set color
   // of button of requested opMode to yellow
   if (opModeChangeRequested) {
     debugln("in setOpmodeButtonColors, second pass");
@@ -191,9 +188,6 @@ void setOpmodeButtonColors(void) {
 
       case STANDBY:
        bsby.Set_background_color_bco(YELLOW);
-      break;
-
-      case SENSORS_DEVELOPEMENT:
       break;
 
       case RUN_PRESET_COURSE:

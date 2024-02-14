@@ -141,7 +141,10 @@ void motor_TELEOP_node_v1(void) {
   const int atRestZone {3};  // buffer zone to indicate stick is at rest in the middle
   boolean emergency_run{false}; // indicates we are moving using emergency buttons
 
-  currentOpModeName = "TELEOP";
+  if (run_setup) {
+    currentOpModeName = "TELEOP";
+    run_setup = false;
+  }
 
   if(PS2_config_result == 254 || run_setup) { //try to setup controler up to 10 times
    // debug debugln("Setting controler...");
