@@ -282,17 +282,21 @@ vvvvvvvvv branch PID_control_compile merge into master and deleted vvvvvvvv
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
 
-38. Test collision sensor ISR (developped in STANDBY mode) :
+38. Test collision sensor ISR (developped in STANDBY mode) : FINISHED
   38.1 modif ISR of right collision sensor to count up each entry DONE
   38.2 modif run op before case to intercept when collision occured DONE
-  38.3 in setup clear pending interrupt of each interrupt on pin 30, 32 and 34
-  38.4 is this ok #define JUST_DO_NOTHING 1000000UL for unsigned long?
+  38.3 in setup clear pending interrupt of each interrupt on pin 30, 32 and 34 NO
+  38.4 is this ok #define JUST_DO_NOTHING 1000000UL for unsigned long? OK
   38.5 How to handle op mode change during handling of emergency mode??? DONE
   38.6 Do multiples rapid interrupts during emergency handling will provoque back to back execution of the function?
-  38.7 Handle when contact is made with 2 sensors at the same time (programmed)
-  38.7.1 verify all possible case of contact
-  38.7.2 hit multiple times on different sensors
-  37.7.3 rapid hit on one sensor
+  38.7 Handle when contact is made with 2 sensors at the same time (programmed) DONE
+  38.7.1 verify all possible case of contact DONE
+  38.7.2 hit multiple times on different sensors DONE
+  37.7.3 rapid hit on one sensor DONE
+  37.7.4 implement for STANDBY and TELEOP DONE
+vvvvvvvvv branch collision_sensor_devel merge into master and deleted vvvvvvvv
+2024-02-13 pushed to remote
+
 
 
 XX. Divers :

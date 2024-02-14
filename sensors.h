@@ -22,9 +22,9 @@ Contact sensor IDs binary (decimal)
 010 (2) center
 001 (1) right
 */
-#define LEFT_CONTACT_TRIGGERED 4
+#define LEFT_CONTACT_TRIGGERED   4
 #define CENTER_CONTACT_TRIGGERED 2
-#define RIGHT_CONTACT_TRIGGERED 1
+#define RIGHT_CONTACT_TRIGGERED  1
 
 // function prototypes
 void isr_left_contact_sensor(void);
