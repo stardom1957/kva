@@ -282,33 +282,44 @@ vvvvvvvvv branch PID_control_compile merge into master and deleted vvvvvvvv
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch collision_sensor_devel vvvvvvvv
 
+Note: this is using the Test debouncing circuit develloped in sketch binder projects 27, 28 andd 29
+
 38. Test collision sensor ISR (developped in STANDBY mode) : FINISHED
   38.1 modif ISR of right collision sensor to count up each entry DONE
   38.2 modif run op before case to intercept when collision occured DONE
   38.3 in setup clear pending interrupt of each interrupt on pin 30, 32 and 34 NO
   38.4 is this ok #define JUST_DO_NOTHING 1000000UL for unsigned long? OK
   38.5 How to handle op mode change during handling of emergency mode??? DONE
-  38.6 Do multiples rapid interrupts during emergency handling will provoque back to back execution of the function?
+  38.6 free
   38.7 Handle when contact is made with 2 sensors at the same time (programmed) DONE
   38.7.1 verify all possible case of contact DONE
   38.7.2 hit multiple times on different sensors DONE
-  37.7.3 rapid hit on one sensor DONE
-  37.7.4 implement for STANDBY and TELEOP DONE
+  38.7.3 rapid hit on one sensor DONE
+  38.7.4 implement for FREERUN and TELEOP DONE
 vvvvvvvvv branch collision_sensor_devel merge into master and deleted vvvvvvvv
 2024-02-13 pushed to remote
 
 
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-vvvvvvvvv on branch teleop_optimize vvvvvvvv
-
-39. revue of TELEOP mode:
-  39.1 report controller found even if not found (see run_setup variable)
-
-
+vvvvvvvvv on branch master vvvvvvvv
+2024-07
+39. Collision sensors circuit debouncer:
+  39.1 Test debouncing circuit mounted onto test breadboard: test under 5.0 V and 3.3V (See KVA binder 7.5.4 and sketch binder projects 29, page 21) WORKS FINE DONE
+  39.2 Production debouncing circuit mounted onto soldered board, test under 3.3V and 5V OK DONE
+  39.3 Production debouncing circuit mounted on vehicule and connected to 3.3V Due PS. Tested with code 37.7.4, but signal unstable causing malfunction of program, PS WILL NOT BE 3.3V ABANDONED
+  39.4 Production debouncing circuit mounted on vehicule and connected to 5.0V power bus: all signal routed trough level shifter.  Tested with code 37.7.4 WORKS FINE DONE
+  39.5 Level shifting: document in KVA section 3, table. TODO
+  39.6 Production debouncing circuit: document in binder project 29 TODO
+  39.7 Some cosmetic changes to code in kva.ino::handle_emergency TEST ADD DONE
+    git commit -m "39.7 Some cosmetic changes to code in kva.ino::handle_emergency"
+  39.8 
+40. 
+XX. Will multiples rapid interrupts during emergency handling provoque back to back execution of ISR functions?
 
 XX. Divers :
   LED_YELLOW_ALERT_CONDITION will have to review it's usage
   updateDisplayAndIndicators(void) : case for page 2 ????
+  report controller found even if not found (see run_setup variable)
 
 
 

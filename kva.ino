@@ -96,7 +96,7 @@
  Used for timing operations in microseconds
 */
 unsigned long emergency_function_last_exit_time{0};
-unsigned long emergency_run_time;
+unsigned long emergency_run_time{0};
 
 /*
   Flags used to control each particular operation for the amount of time specified bye *_RUN_TIMEx values above
@@ -132,6 +132,10 @@ void handle_emergency(byte calling_mode) {
         debugln1(contact_sensors_ID);
         debugln1();
 
+        debug1("Number of contacts detected in ISR= ");
+        debugln1(nbr_of_contact);
+        debugln1();
+
         // init of flags and 
         emergency_run_time = 0; //reset time cownter
         nbr_of_contact = 0;
@@ -152,6 +156,11 @@ void handle_emergency(byte calling_mode) {
          imediately at the end, starts do_wait1
       */
       if (contact_sensor_just_triggered) {
+        // report wich contact has triggered
+        debug1("contact_sensors_ID= ");
+        debugln1(contact_sensors_ID);
+        debugln1();
+
         // turn motors off
         debugln1("Setup... stopping motors");
         motorAllStop();
