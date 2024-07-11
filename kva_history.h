@@ -309,11 +309,32 @@ vvvvvvvvv on branch master vvvvvvvv
   39.3 Production debouncing circuit mounted on vehicule and connected to 3.3V Due PS. Tested with code 37.7.4, but signal unstable causing malfunction of program, PS WILL NOT BE 3.3V ABANDONED
   39.4 Production debouncing circuit mounted on vehicule and connected to 5.0V power bus: all signal routed trough level shifter.  Tested with code 37.7.4 WORKS FINE DONE
   39.5 Level shifting: document in KVA section 3, table. TODO
-  39.6 Production debouncing circuit: document in binder project 29 TODO
+  39.6 Production debouncing circuit: document in binder project 29 DONE
   39.7 Some cosmetic changes to code in kva.ino::handle_emergency TEST ADD DONE
     git commit -m "39.7 Some cosmetic changes to code in kva.ino::handle_emergency"
-  39.8 
-40. 
+  39.8 2024-07-09 git push origin master
+  39.9 Some minor cosmetic changes to handle_emergency code
+  39.10 ADD
+    git commit -m "39.10 Some minor cosmetic changes to handle_emergency code"
+  39.11 Test while in TELEOP mode <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+DO THIS IN NEW BRANCH:
+To see if random function is effective in the case we hit center.
+Also see how if a double hit: i. e. L + C, etc, is handled correctly.
+
+To make sure that stop motor action is no retriggered when multiple hit:
+if (contact_sensor_just_triggered && contact_sensors_ID) {
+
+Add a compile directive to suppress motor commands, keeping only serial monitor outputs (debugln1)
+40. Hit two or tree contacts:
+  40.1 L + C
+  40.2 L + R
+  40.3 C + R
+  40.4 L + C + R
+
+41. Timing seems slow, on HMI, RTC time is often taking more then 2 s to update
+  41.1 maybe check LOOP_FLIPFLOP_PORT with oscilloscope
 XX. Will multiples rapid interrupts during emergency handling provoque back to back execution of ISR functions?
 
 XX. Divers :

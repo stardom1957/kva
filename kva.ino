@@ -12,7 +12,7 @@
 #define SERIAL_TELEMETRY_PORT 1 // serial port to XBee RF module
 #define SERIAL_HMI            2 // serial port to Nextion HMI
 //#define TELEMETRY               // compile telemetry code
-//#define PID_COMPILE // compile kva_pid.h
+//#define PID_COMPILE // will compile kva_pid.h
 
 /* definition of debug levels
     mainly replacing Serial.print and Serial.println by nothing when not needed
@@ -65,6 +65,7 @@
 #include "motor_control.h"
 #include "kva_rtc.h"
 #include "kva_hmi.h" // for HMI display and control
+
 #ifdef PID_COMPILE
 #include "kva_pid.h"
 #endif
@@ -152,9 +153,19 @@ void handle_emergency(byte calling_mode) {
     case TELEOP:
       /* setup ******
          Setup for first entry in emergency mode; that is, right after one of the ISR
-         has set contact_sensor_just_triggered and;
-         imediately at the end, starts do_wait1
+         has set the variable contact_sensor_just_triggered to true. At this time the
+         motors are stopped and do_wait1 is set to true to activate the time delay of
+         EMERGENCY_WAIT_RUN_TIME1 microseconds.
+ 
+         If the vehicule hit on more than one bumbers, then two or more sensors would
+         be activated each triggering it's own interrupt; each time updating the
+         contact_sensors_ID variable with it's own sensor ID. Then, when the time
+         will comme to handle the direction of the emergency turn,  the variable
+         contact_sensors_ID should have the proper value no matter how many times
+         the sensors ISR have been called because the variable (contact_sensors_ID)
+         is only reset when we go out of the emergency routine.
       */
+         
       if (contact_sensor_just_triggered) {
         // report wich contact has triggered
         debug1("contact_sensors_ID= ");
@@ -187,17 +198,19 @@ void handle_emergency(byte calling_mode) {
         // has triggered.
         // We want to turn left or right randomly 50% of the time each one direction
         turnRightOrLeft = random(0, 2);
+        debug1("turnRightOrLeft will be ");
+        debugln1(turnRightOrLeft);
 
         // terminates this step and starts next one
         contact_sensor_just_triggered = false;
         do_wait1 = true;
 
-      } // if contact_sensor_just_triggered
+      } // end if (contact_sensor_just_triggered ...
 
       /* do_wait1 ******
         Handles timing of do_wait1. At this point the timer (emergency_run_time) starts to count and we must
         accumulate the time for a delay of WAIT1 microseconds and;
-        at the end of WAIT1 micriseconds, starts do_emergency_reverse
+        at the end of WAIT1 microseconds, starts do_emergency_reverse
       */
 
       if (do_wait1 && (emergency_run_time > EMERGENCY_WAIT_RUN_TIME1)) {
@@ -217,7 +230,7 @@ void handle_emergency(byte calling_mode) {
           debugln1("Start reverse");
           motorLeftSet(EMERGENCY_SLOW, BACKWARD);
           motorRightSet(EMERGENCY_SLOW, BACKWARD);
-      }
+      } // end if (do_wait1 && ...)
 
       /* do_emergency_reverse ******
         Handles timing of do_emergency_reverse and;
@@ -244,7 +257,7 @@ void handle_emergency(byte calling_mode) {
            motorAllStop();
            do_wait2 = true;
            do_emergency_reverse = false;
-      } // do_emergency_reverse
+      } // end if (do_emergency_reverse && ...
 
       /* do_wait2 ******
         Handle timing of do_wait2 and;
@@ -309,7 +322,7 @@ void handle_emergency(byte calling_mode) {
               }
           break;
         }
-      }
+      } // end if (do_wait2 && ...
 
       /* do_emergency_turn ******
         Handle timing of do_emergency_turn and;
@@ -333,7 +346,7 @@ void handle_emergency(byte calling_mode) {
 
             do_wait3 = true;
             do_emergency_turn = false;
-       }
+       }// end if (do_emergency_turn &&
 
       /* do_wait3 ******
         Handle timing of do_wait3 and;
@@ -358,9 +371,8 @@ void handle_emergency(byte calling_mode) {
          state_of_emergency = false;
          contact_sensors_ID = 0; // reset contact sensor ID
          nbr_of_contact = 0;
-      }
-    break; // FREE_RUN
-
+      } /// end if (do_wait3 &&
+    break; // FREE_RUN and TELEOP
 
     default:
     break;
@@ -600,8 +612,9 @@ void manageOpModeChange(void) {
 
 void updateDisplayAndIndicators(void) {
  if ((millis() - displayTimer) > displayInterval) {
-     //yellow LED on if any adverse condition occur
-     // debug digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
+     // yellow LED on if any adverse condition occur
+     // clear indicator
+     //digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); // reset alert condition
 
      //check RTC status
      if (rtc.isrunning() == 0) {
@@ -613,6 +626,7 @@ void updateDisplayAndIndicators(void) {
      //check HMI
      if (!hmiFound) {
       digitalWrite(LED_YELLOW_ALERT_CONDITION, HIGH);
+      hmiFound = nexInit(); // attempt to restart HMI
      }
     
 
@@ -649,7 +663,7 @@ void updateDisplayAndIndicators(void) {
      strToChar(currentOpModeName); // mode name converted to chr in char_buffer
      topmode.setText(char_buffer);
 
-    // update time      opmode
+    // update time
     //String tm{NULL};
      memset(char_buffer, 0, sizeof(char_buffer));
      if (rtcFound) {
@@ -695,14 +709,14 @@ void updateDisplayAndIndicators(void) {
 void setup()
 {
   Serial.begin(9600);    // for debuging, handled by Nextion library see Nextion.h
-  Serial1.begin(115200); // XBee for telemetryopmode
+  Serial1.begin(115200); // XBee for telemetry
   Serial2.begin(115200); // HMI communication
 
   setGPIOs();
 
   // set yellow alert off
   digitalWrite(LED_YELLOW_ALERT_CONDITION, LOW); //debug to indicate end of init
-  digitalWrite(LED_GREEN_SYSTEM_READY, LOW); // now system is not ready
+  digitalWrite(LED_GREEN_SYSTEM_READY, LOW); // system is not ready for now
 
   // starts RTC
   rtcFound = kva_rtc_init();
@@ -716,7 +730,7 @@ void setup()
     // prepare PID controlers for L & R motors
       pid_L.setParams(1, 0.25, 1, 255); // left motor
       pid_R.setParams(1, 0, 0, 255); // right motor
-    opmode
+
     // attach interrupt to S1 encoder of each motor
     attachInterrupt(digitalPinToInterrupt(S1motorEncoder_L_PIN), ISR_readEncoder_L, RISING);
     attachInterrupt(digitalPinToInterrupt(S1motorEncoder_R_PIN), ISR_readEncoder_R, RISING);
@@ -760,7 +774,7 @@ void setup()
        // clear pending status of interrupt on each pin of the above pins 
        //NVIC_ClearPendingIRQ(PIOC_IRQn);
        //(PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
-       //debug NVIC_ClearPendingIRQ(PIOC_IRQn); // (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
+       //NVIC_ClearPendingIRQ(PIOC_IRQn); // (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
        //debug NVIC_ClearPendingIRQ(PIOC_IRQn); // (PIOC PIOC ((Pio *)0x400E1200U) or PIOC_IRQn)
  #endif  
 
