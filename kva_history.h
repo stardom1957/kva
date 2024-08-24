@@ -321,18 +321,26 @@ vvvvvvvvv on branch master vvvvvvvv
   39.11 Test while in TELEOP mode SUCCESS DONE
   39.12 git commit -ammend -m "39.10 Some minor cosmetic changes to handle_emergency code" DONE
   39.13 2024-08-24 git push origin master DONE
+vvvvvvvvv branch collision_sensor_devel merge into master and deleted vvvvvvvv
+
 
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 vvvvvvvvv on branch emergency_tune_1 vvvvvvvv
 2024-08-24
-40. Tuning for collision detect delays:
+40. Tuning for collision detect delays: FINISHED
   40.1. terrain tests show a travel of 150 cm during reverse; length of vehicule is appr. 40 cm, so EMERGENCY_REVERSE_RUN_TIME should be reset from 3s to 40/150 (app. 27%)
       4s * 0.27 = 1.1s DONE
   40.2. rotation EMERGENCY_TURN_RUN_TIME of 3s gives more than 180. 90° is desired so set to 1.1s
   40.3. all wait delays set to 1.5s DONE
   40.4. bench test DONE
-  40.5. terrain test <=======
-  
+  40.5. terrain test LATER
+  40.6. git commit -m "40. Tuning for collision detect delays"
+  40.7. git checkout master
+  40.8. git merge emergency_tune_1
+  40.9. git branch -d emergency_tune_1 (branch collision_sensor_devel merge into master and deleted)
+  40.10. 2024-08-24 pushed to remote
+
+
 TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS 
 ==================================================================
 DO THIS IN NEW BRANCH:
