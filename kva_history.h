@@ -319,8 +319,22 @@ vvvvvvvvv on branch master vvvvvvvv
     git commit -m "39.10 Some minor cosmetic changes to handle_emergency code"
     git push origin master (2024-07-11)
   39.11 Test while in TELEOP mode SUCCESS DONE
+  39.12 git commit -ammend -m "39.10 Some minor cosmetic changes to handle_emergency code" DONE
+  39.13 2024-08-24 git push origin master DONE
 
-
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvv on branch emergency_tune_1 vvvvvvvv
+2024-08-24
+40. Tuning for collision detect delays:
+  40.1. terrain tests show a travel of 150 cm during reverse; length of vehicule is appr. 40 cm, so EMERGENCY_REVERSE_RUN_TIME should be reset from 3s to 40/150 (app. 27%)
+      4s * 0.27 = 1.1s DONE
+  40.2. rotation EMERGENCY_TURN_RUN_TIME of 3s gives more than 180. 90° is desired so set to 1.1s
+  40.3. all wait delays set to 1.5s DONE
+  40.4. bench test DONE
+  40.5. terrain test <=======
+  
+TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS TODOS 
+==================================================================
 DO THIS IN NEW BRANCH:
 To see if random function is effective in the case we hit center.
 Also see how if a double hit: i. e. L + C, etc, is handled correctly.

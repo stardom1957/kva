@@ -87,11 +87,11 @@
       of these operations done in the following order.
 */
 
-#define EMERGENCY_WAIT_RUN_TIME1    2000000 // delay time after setup in handle_emergency; right after motor stop
-#define EMERGENCY_REVERSE_RUN_TIME  4000000 // run motor in reverse for this amount of time
-#define EMERGENCY_WAIT_RUN_TIME2    2000000 // motor stopped for this amount of time after reverse
-#define EMERGENCY_TURN_RUN_TIME     3000000 // turn vehicule in place (left/right) for this amount of time
-#define EMERGENCY_WAIT_RUN_TIME3    3000000 // delay for this amount of time before exit and return to calloing mode
+#define EMERGENCY_WAIT_RUN_TIME1    1500000 // delay time after setup in handle_emergency; right after motor stop
+#define EMERGENCY_REVERSE_RUN_TIME  1100000 // run motor in reverse for this amount of time
+#define EMERGENCY_WAIT_RUN_TIME2    1500000 // motor stopped for this amount of time after reverse
+#define EMERGENCY_TURN_RUN_TIME     1100000 // turn vehicule in place (left/right) for this amount of time
+#define EMERGENCY_WAIT_RUN_TIME3    1500000 // delay for this amount of time before exit and return to calloing mode
 
 /*
  Used for timing operations in microseconds
